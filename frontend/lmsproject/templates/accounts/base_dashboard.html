@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LMS Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            /* Prevent horizontal scroll caused by fixed sidebar */
+            overflow-x: hidden;
+        }
+
+        .course-card {
+            background-color: #ffffff;
+            width: 60%;
+            margin: 20px auto;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .course-card h3 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed; /* Changed from relative/static */
+            top: 0;
+            left: 0;
+            height: 100vh; /* Full height */
+            width: 250px; /* Set a fixed width for the sidebar */
+            background: linear-gradient(180deg, #0f172a, #1e293b); /* Adjusted gradient */
+            padding: 20px 15px;
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+            z-index: 1030; /* Ensure it's above content */
+            overflow-y: auto; /* Allow scrolling if content overflows */
+            transition: width 0.3s ease; /* Smooth transition for potential toggling */
+        }
+
+        .sidebar .navbar-brand {
+            color: #38bdf8 !important;
+            font-size: 24px; /* Slightly smaller */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px; /* Spacing below brand */
+            padding-bottom: 15px; /* Spacing */
+            border-bottom: 1px solid #334155; /* Separator */
+        }
+
+         .sidebar .navbar-brand i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .sidebar .nav-link {
+            color: #cbd5e1 !important; /* Lighter text for dark background */
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            padding: 10px 15px; /* Adjust padding */
+            display: block; /* Make links block-level */
+            margin-bottom: 5px; /* Spacing between links */
+        }
+
+         .sidebar .nav-link i { /* Style icons */
+            margin-right: 12px;
+            width: 20px; /* Align icons */
+            text-align: center;
+        }
+
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { /* Add active state */
+            background-color: #38bdf8;
+            color: #0f172a !important;
+            transform: none; /* Remove scale on hover for sidebar */
+        }
+
+        .sidebar .logout-section {
+            margin-top: 30px; /* Space above logout */
+            padding-top: 15px; /* Space */
+            border-top: 1px solid #334155; /* Separator */
+        }
+
+        .sidebar .logout-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            width: 60%;
+            text-align: left;
+        }
+
+        .sidebar .logout-btn i {
+             margin-right: 12px;
+        }
+
+
+        .sidebar .logout-btn:hover {
+            background-color: #dc2626;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px; /* Same as sidebar width */
+            padding: 30px; /* Add padding around content */
+            width: calc(100% - 250px); /* Adjust width */
+            transition: margin-left 0.3s ease, width 0.3s ease; /* Smooth transition */
+        }
+
+        /* Responsive adjustments (optional but recommended) */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px; /* Collapse sidebar on smaller screens */
+            }
+            .sidebar .navbar-brand span, .sidebar .nav-link span {
+                 display: none; /* Hide text, show only icons */
+            }
+             .sidebar .navbar-brand i {
+                 margin-right: 0;
+            }
+            .sidebar .nav-link i {
+                 margin-right: 0;
+            }
+             .sidebar .logout-btn span {
+                 display: none;
+             }
+             .sidebar .logout-btn i {
+                 margin-right: 0;
+             }
+
+            .main-content {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+        }
+
+         @media (max-width: 768px) {
+             /* Example: Hide sidebar completely and use a top toggle */
+            .sidebar {
+                /* You might hide it completely or use an offcanvas approach */
+                 width: 0;
+                 padding: 0;
+                 overflow: hidden;
+            }
+             .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+             /* You would need a button elsewhere to toggle the sidebar visibility */
+         }
+
+    </style>
+</head>
+<body>
+
+<div class="d-flex"> <div class="sidebar d-flex flex-column"> <a class="navbar-brand" href="#">
+            <i class="bi bi-mortarboard-fill"></i>
+            <span>LMS Dashboard</span> </a>
+
+        <ul class="navbar-nav flex-grow-1"> <li class="nav-item">
+                 <a class="nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}" href="{% url 'student_dashboard' %}">
+                    <i class="bi bi-book"></i> <span>Courses</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'track_progress' %}active{% endif %}" href="{% url 'track_progress' %}">
+                    <i class="bi bi-graph-up"></i> <span>Track Progress</span>
+                </a>
+            </li>
+            <li class="nav-item position-relative">
+                <a class="nav-link {% if request.resolver_match.url_name == 'rewards_and_quizzes' %}active{% endif %}" href="{% url 'rewards_and_quizzes' %}">
+                    <i class="bi bi-gift"></i> <span>Quizzes & Rewards</span>
+                    </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                    <i class="bi bi-person-circle"></i> <span>Profile</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="logout-section mt-auto"> <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

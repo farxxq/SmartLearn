@@ -1,0 +1,165 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% block content %}
+
+<!-- Bootstrap Styles -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid">
+    <div class="row mt-4">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end">
+            <div class="position-sticky pt-3">
+                <h5 class="text-center">Cloud Computing Beginner Topics</h5>
+                <ul class="nav flex-column" id="topicList">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTopic(0)">Introduction to Cloud Computing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(1)">Cloud Service Models</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(2)">Cloud Deployment Models</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(3)">Virtualization in Cloud</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(4)">Benefits of Cloud Computing</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div id="topicContent" class="mt-4"></div>
+
+            <!-- Start Quiz Button -->
+            <div class="text-end mt-3" id="startQuizBtn" style="display: none;">
+                <button class="btn btn-primary" onclick="startQuiz()">Start Quiz</button>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="mt-4" id="quizSection" style="display: none;">
+                <h3 class="mb-3">Cloud Computing Beginner Level Quiz</h3>
+                <form id="quizForm" class="mb-4">
+                    <div id="quizQuestions" class="mt-3"></div>
+                    <button type="submit" class="btn btn-success mt-3">Submit Quiz</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+    <a href="{% url 'cloud_course' %}" class="btn btn-outline-primary">← Back to Course</a>
+</div>
+
+<script>
+    const topics = [
+        {
+            title: "Introduction to Cloud Computing",
+            content: "Cloud computing is the delivery of computing services such as servers, storage, databases, networking, software, and more over the internet (cloud)."
+        },
+        {
+            title: "Cloud Service Models",
+            content: "The main cloud service models are IaaS, PaaS, and SaaS. IaaS provides infrastructure, PaaS offers a platform for developing apps, and SaaS delivers software applications."
+        },
+        {
+            title: "Cloud Deployment Models",
+            content: "Cloud deployment models include public cloud, private cloud, and hybrid cloud. A public cloud is owned and operated by a third-party provider, while private clouds are dedicated to a single organization."
+        },
+        {
+            title: "Virtualization in Cloud",
+            content: "Virtualization is a key technology used in cloud computing that allows multiple virtual instances to run on the same physical hardware."
+        },
+        {
+            title: "Benefits of Cloud Computing",
+            content: "Cloud computing offers benefits such as cost efficiency, scalability, flexibility, and enhanced collaboration."
+        }
+    ];
+
+    function showTopic(index) {
+        const topic = topics[index];
+        const topicContent = `
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+        document.getElementById("topicContent").innerHTML = topicContent;
+
+        // Highlight active topic
+        const links = document.querySelectorAll("#topicList .nav-link");
+        links.forEach(link => link.classList.remove("active"));
+        links[index].classList.add("active");
+
+        // Show start quiz button only after last topic
+        document.getElementById("startQuizBtn").style.display = (index === topics.length - 1) ? "block" : "none";
+        document.getElementById("quizSection").style.display = "none";  // Hide quiz if navigating back
+    }
+
+    function startQuiz() {
+        document.getElementById("quizSection").style.display = "block";
+        document.getElementById("startQuizBtn").style.display = "none";
+    }
+
+    const questions = [
+        { question: "What is cloud computing?", options: ["A way to run applications on local machines", "The delivery of computing services over the internet", "Running apps on physical servers", "None of the above"], correct: "The delivery of computing services over the internet" },
+        { question: "Which of these is not a cloud service model?", options: ["IaaS", "PaaS", "SaaS", "CSS"], correct: "CSS" },
+        { question: "What is IaaS?", options: ["Infrastructure as a Service", "Integrated App as a Service", "Internet Application as a Service", "Information as a Service"], correct: "Infrastructure as a Service" },
+        { question: "Which of these is an example of a PaaS service?", options: ["AWS EC2", "Google App Engine", "Microsoft Azure", "Salesforce"], correct: "Google App Engine" },
+        { question: "Which is a cloud deployment model?", options: ["Public Cloud", "Private Cloud", "Hybrid Cloud", "All of the above"], correct: "All of the above" },
+        { question: "What does SaaS stand for?", options: ["Software as a Service", "Storage as a Service", "System as a Service", "Security as a Service"], correct: "Software as a Service" },
+        { question: "Which of the following is a key advantage of cloud computing?", options: ["High upfront costs", "Limited scalability", "Elasticity and flexibility", "Complexity in deployment"], correct: "Elasticity and flexibility" },
+        { question: "Which of the following is an example of a cloud service provider?", options: ["Amazon Web Services", "Google Cloud", "Microsoft Azure", "All of the above"], correct: "All of the above" },
+        { question: "What is virtualization in the context of cloud computing?", options: ["Running applications on multiple servers", "Simulating hardware to run multiple virtual machines on one physical machine", "Storing data in cloud storage", "Managing network resources"], correct: "Simulating hardware to run multiple virtual machines on one physical machine" },
+        { question: "What is a private cloud?", options: ["Cloud owned by a third-party provider", "Cloud dedicated to a single organization", "Hybrid of public and private cloud", "None of the above"], correct: "Cloud dedicated to a single organization" }
+    ];
+
+    function loadQuiz() {
+        const quizDiv = document.getElementById("quizQuestions");
+        questions.forEach((q, index) => {
+            const qDiv = document.createElement("div");
+            qDiv.classList.add("mb-3", "p-3", "border", "rounded");
+            qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options.map((opt, i) => ` 
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `).join('')}`;
+            quizDiv.appendChild(qDiv);
+        });
+    }
+
+    document.getElementById("quizForm").onsubmit = function(event) {
+        event.preventDefault();
+        let score = 0;
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected && selected.value === q.correct) score++;
+        });
+        alert(`You scored ${score}/10`);
+
+        fetch("{% url 'cloud_computing_beginner_quiz' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ score: score })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                alert("Error: " + (data.error || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error submitting quiz.");
+        });
+    };
+
+    // Initialize topics and quiz
+    showTopic(0);
+    loadQuiz();
+</script>
+
+{% endblock %}

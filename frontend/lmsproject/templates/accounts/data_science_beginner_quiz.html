@@ -1,0 +1,517 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% block content %}
+
+<!-- Bootstrap Styles -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom Styles -->
+<style>
+    body {
+        background-color: #eaf6fb; /* Light blue background */
+    }
+    .container-fluid{
+        margin-right: 0%;
+    }
+
+    .sidebar {
+        background-color: #0d6efd; /* Bootstrap primary blue */
+        min-height: 100vh;
+        padding-top: 20px;
+        color: white;
+    }
+
+    .sidebar h5 {
+        color: white;
+    }
+
+    .sidebar .nav-link {
+        color: white;
+        font-weight: 500;
+        padding: 10px 15px;
+        border-radius: 8px;
+    }
+
+    .sidebar .nav-link.active,
+    .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .card {
+        background-color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary,
+    .btn-outline-primary {
+        border-radius: 8px;
+    }
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    body {
+        background-color: #f4f9fd; /* Soft blue background */
+    }
+
+    #topicContent {
+        background-color: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    #topicContent ul {
+        list-style-type: none;
+        padding-left: 1rem;
+    }
+
+    #topicContent ul li::before {
+        content: "✔️ ";
+        margin-right: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mt-4">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse border-end">
+            <div class="position-sticky">
+                <h5 class="text-center mb-4">Data Science Beginner Topics</h5>
+                <ul class="nav flex-column" id="topicList">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTopic(0)">Introduction to Data Science</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(1)">Data Collection and Preprocessing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(2)">Exploratory Data Analysis (EDA)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(3)">Introduction to Machine Learning</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(4)">Data Visualization</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div id="topicContent" class="mt-4"></div>
+
+            <!-- Start Quiz Button -->
+            <div class="text-end mt-3" id="startQuizBtn" style="display: none;">
+                <button class="btn btn-primary" onclick="startQuiz()">Start Quiz</button>
+            </div>
+
+            <!-- Quiz Section -->
+            <div
+            class="modal fade"
+            id="quizModal"
+            tabindex="-1"
+            aria-labelledby="quizModalLabel"
+            aria-hidden="true"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+          >
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="quizModalLabel">
+                    Data Science Beginner Quiz
+                  </h5>
+                </div>
+                <div class="modal-body" id="quizModalBody">
+                  <div id="quizAlertPlaceholder"></div>
+                  <form id="quizForm">
+                    <div id="quizQuestionsContainer" class="mt-3">
+                      <p>Loading questions...</p>
+                    </div>
+                    <button type="submit" class="btn btn-success mt-4">
+                      Submit Quiz
+                    </button>
+                  </form>
+                </div>
+                <div
+                  class="modal-footer"
+                  id="quizModalFooter"
+                  style="display: none"
+                >
+                  <p id="quizResultText" class="me-auto"></p>
+                  <button
+                    type="button"
+                    id="closeModalBtn"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <a
+                    href="#"
+                    id="modalNextLink"
+                    class="btn btn-primary"
+                    style="display: none"
+                    >Next Step</a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+    <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary">← Back to Dashboard</a>
+</div>
+
+<script>
+    const topics = [
+    {
+            title: "Introduction to Data Science",
+            content: `
+                <div class="p-4 bg-light border rounded shadow-sm">
+                    <h4 class="text-primary mb-3"> Introduction to Data Science</h4>
+                    <p><strong>Data Science</strong> is an interdisciplinary field that combines <em>mathematics</em>, <em>statistics</em>, <em>computer science</em>, and <em>domain expertise</em> to extract knowledge and insights from both structured and unstructured data.</p>
+
+                    <p>It involves several important steps:</p>
+                    <ul>
+                        <li> <strong>Data Exploration:</strong> Understanding the structure and quality of the data.</li>
+                        <li> <strong>Data Cleaning:</strong> Handling missing values, noise, and inconsistencies.</li>
+                        <li> <strong>Data Visualization:</strong> Using plots and charts to see trends and patterns.</li>
+                        <li> <strong>Machine Learning:</strong> Building models that can make predictions or classifications.</li>
+                        <li> <strong>Deployment:</strong> Integrating the model into production for real-time use.</li>
+                    </ul>
+
+                    <p>Data science is widely used in various industries like healthcare, finance, marketing, and tech to solve real-world problems and make informed decisions.</p>
+
+                    <p class="mt-3"><strong> Watch this video to learn more:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/ua-CiDNNj30" title="What is Data Science? | Data Science For Beginners" allowfullscreen></iframe>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "Data Collection and Preprocessing",
+            content: `
+                <div class="p-4 bg-light border rounded shadow-sm">
+                    <h4 class="text-primary mb-3">Data Collection and Preprocessing</h4>
+                    <p><strong>Data Collection</strong> is the process of gathering raw data from multiple sources, such as:</p>
+                    <ul>
+                        <li>Databases (e.g., SQL, MongoDB)</li>
+                        <li>APIs (e.g., weather APIs, Twitter API)</li>
+                        <li>Web Scraping (e.g., BeautifulSoup, Scrapy)</li>
+                        <li>Files (CSV, Excel, JSON, etc.)</li>
+                        <li>Surveys, IoT Sensors, Logs, etc.</li>
+                    </ul>
+
+                    <p><strong>Data Preprocessing</strong> is essential to clean and prepare the data before analysis. Common preprocessing steps include:</p>
+                    <ul>
+                        <li><strong>Cleaning:</strong> Handling missing or duplicate values, fixing errors.</li>
+                        <li><strong>Normalization:</strong> Scaling features to a uniform range.</li>
+                        <li><strong>Encoding:</strong> Transforming categorical data into numerical format.</li>
+                        <li><strong>Transformation:</strong> Applying mathematical changes to improve data distribution.</li>
+                        <li><strong>Splitting:</strong> Dividing into training and testing sets for modeling.</li>
+                    </ul>
+
+                    <p>These steps ensure your dataset is high-quality and suitable for machine learning or analytics.</p>
+
+                    <p class="mt-3"><strong>Learn more from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/xvqsFTUeD1E" 
+                                title="Data Preprocessing in Machine Learning | Data Science" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "Exploratory Data Analysis (EDA)",
+            content: `
+                <div class="p-4 bg-light border rounded shadow-sm">
+                    <h4 class="text-primary mb-3">Exploratory Data Analysis (EDA)</h4>
+                    <p><strong>Exploratory Data Analysis (EDA)</strong> is the process of analyzing datasets to summarize their main characteristics, often using visual methods. The goal of EDA is to gain insights into the data by examining its patterns, trends, and anomalies before applying more sophisticated analysis or machine learning techniques.</p>
+
+                    <p><strong>Key Steps in EDA:</strong></p>
+                    <ul>
+                        <li><strong>Data Cleaning:</strong> Identifying and handling missing data, correcting inconsistencies, and removing outliers.</li>
+                        <li><strong>Data Visualization:</strong> Using graphs like histograms, box plots, scatter plots, etc., to visualize the distribution and relationships between variables.</li>
+                        <li><strong>Summary Statistics:</strong> Calculating descriptive statistics like mean, median, standard deviation, and correlation coefficients to summarize the data.</li>
+                        <li><strong>Identifying Patterns and Trends:</strong> Using visualizations and statistical methods to identify trends, relationships, and anomalies in the data.</li>
+                        <li><strong>Hypothesis Generation:</strong> Based on the visualizations, you generate hypotheses to test in further analysis or modeling steps.</li>
+                    </ul>
+
+                    <p>EDA helps you understand the underlying structure of the data, spot anomalies or patterns, and decide which statistical methods to apply for deeper analysis.</p>
+
+                    <p class="mt-3"><strong>Learn more from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/1sKjdZu4jY0" 
+                                title="Exploratory Data Analysis (EDA) in Python | Data Science" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "Introduction to Machine Learning",
+            content: `
+                <div class="p-4 bg-light border rounded shadow-sm">
+                    <h4 class="text-primary mb-3">Introduction to Machine Learning</h4>
+                    <p><strong>Machine Learning (ML)</strong> is a subset of Artificial Intelligence (AI) that allows systems to learn from data and improve their performance over time without being explicitly programmed. In essence, machine learning uses algorithms to find patterns in data and make predictions or decisions based on that data.</p>
+
+                    <p><strong>Key Concepts of Machine Learning:</strong></p>
+                    <ul>
+                        <li><strong>Supervised Learning:</strong> In this approach, the model is trained using labeled data, where the input-output pairs are provided. The goal is for the model to learn the mapping between inputs and outputs. Example: Classification and Regression problems.</li>
+                        <li><strong>Unsupervised Learning:</strong> Here, the model is provided with data that has no labels, and it tries to identify patterns or groupings in the data. Example: Clustering and Dimensionality Reduction.</li>
+                        <li><strong>Reinforcement Learning:</strong> In this approach, an agent learns to make decisions by interacting with an environment. The agent receives rewards or penalties based on its actions, helping it learn optimal behavior over time.</li>
+                        <li><strong>Deep Learning:</strong> A subset of machine learning that involves neural networks with many layers (also known as deep neural networks). It excels at tasks like image and speech recognition, natural language processing, etc.</li>
+                    </ul>
+
+                    <p><strong>Applications of Machine Learning:</strong></p>
+                    <ul>
+                        <li><strong>Recommendation Systems:</strong> Used by platforms like Netflix and Amazon to suggest products or content based on user preferences.</li>
+                        <li><strong>Image and Speech Recognition:</strong> Used in applications like facial recognition, voice assistants, and self-driving cars.</li>
+                        <li><strong>Natural Language Processing (NLP):</strong> Helps machines understand and respond to human language, such as chatbots, translation services, and sentiment analysis.</li>
+                        <li><strong>Predictive Analytics:</strong> Used to forecast outcomes such as stock prices, market trends, and customer behavior.</li>
+                    </ul>
+
+                    <p>Machine learning has revolutionized many industries by enabling systems to make predictions and automate tasks based on data, rather than relying on explicit instructions from humans.</p>
+
+                    <p class="mt-3"><strong>Learn more about Machine Learning from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/GwIo3gDZCVQ" 
+                                title="Introduction to Machine Learning | Data Science" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "Data Visualization",
+            content: `
+                <div class="p-4 bg-light border rounded shadow-sm">
+                    <h4 class="text-primary mb-3">Data Visualization</h4>
+                    <p><strong>Data Visualization</strong> is the graphical representation of data and information. By using visual elements like charts, graphs, and maps, data visualization tools provide an accessible way to see and understand trends, outliers, and patterns in data.</p>
+
+                    <p><strong>Importance of Data Visualization:</strong></p>
+                    <ul>
+                        <li><strong>Better Understanding:</strong> It allows individuals to quickly grasp complex data and its relationships, making insights more digestible and actionable.</li>
+                        <li><strong>Identify Trends and Patterns:</strong> Data visualization makes it easier to identify trends, correlations, and outliers in datasets, enabling quicker decision-making.</li>
+                        <li><strong>Improved Communication:</strong> Visualizing data allows complex ideas to be presented more clearly and concisely, making it ideal for sharing insights with non-experts or stakeholders.</li>
+                        <li><strong>Time Efficiency:</strong> It simplifies the interpretation of large datasets, which would be too time-consuming to analyze manually.</li>
+                    </ul>
+
+                    <p><strong>Common Types of Data Visualizations:</strong></p>
+                    <ul>
+                        <li><strong>Bar Charts:</strong> Used to compare quantities across categories, such as sales in different regions or the performance of various products.</li>
+                        <li><strong>Line Graphs:</strong> Useful for showing trends over time, such as stock market fluctuations or temperature changes.</li>
+                        <li><strong>Pie Charts:</strong> Used to represent the proportions of different categories in a whole, such as market share distribution.</li>
+                        <li><strong>Scatter Plots:</strong> Show the relationship between two continuous variables, such as height vs weight or income vs education level.</li>
+                        <li><strong>Heatmaps:</strong> Display data in a matrix form, where values are represented by colors, often used to visualize correlation matrices or geographical data.</li>
+                        <li><strong>Maps:</strong> Geographic visualizations are used to represent location-based data, such as sales in different countries or population density in regions.</li>
+                    </ul>
+
+                    <p><strong>Tools for Data Visualization:</strong> There are various tools available for creating visualizations, including:</p>
+                    <ul>
+                        <li><strong>Tableau:</strong> A powerful tool for creating interactive and shareable dashboards.</li>
+                        <li><strong>Power BI:</strong> A Microsoft tool used for creating business analytics visualizations.</li>
+                        <li><strong>Matplotlib, Seaborn, Plotly (for Python):</strong> Popular libraries used for creating static, animated, and interactive charts in Python.</li>
+                        <li><strong>Google Data Studio:</strong> A free tool for creating reports and dashboards that integrate easily with Google products.</li>
+                    </ul>
+
+                    <p><strong>Best Practices in Data Visualization:</strong></p>
+                    <ul>
+                        <li>Use clear titles, labels, and legends to make the charts easy to understand.</li>
+                        <li>Choose the appropriate type of visualization for your data and the message you want to convey.</li>
+                        <li>Avoid clutter and unnecessary details that could distract from the main insights.</li>
+                        <li>Ensure that color choices are accessible to individuals with color blindness (e.g., using color-blind friendly palettes).</li>
+                    </ul>
+
+                    <p class="mt-3"><strong>Learn more about Data Visualization from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/g8DykJxtD0k" 
+                                title="Data Visualization for Beginners | Data Science" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `
+        }
+    ];
+
+    function showTopic(index) {
+        const topic = topics[index];
+        const topicContent = `
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+        document.getElementById("topicContent").innerHTML = topicContent;
+
+        const links = document.querySelectorAll("#topicList .nav-link");
+        links.forEach(link => link.classList.remove("active"));
+        links[index].classList.add("active");
+
+        document.getElementById("startQuizBtn").style.display = (index === topics.length - 1) ? "block" : "none";
+        document.getElementById("quizSection").style.display = "none";
+    }
+
+    function startQuiz() {
+        document.getElementById("quizSection").style.display = "block";
+        document.getElementById("startQuizBtn").style.display = "none";
+    }var quizModalInstance = null;
+
+function startQuiz() {
+  document.getElementById("startQuizBtn").style.display = "none"; // Hide the start button
+
+  // Get or create the modal instance
+  if (!quizModalInstance) {
+       quizModalInstance = new bootstrap.Modal(document.getElementById('quizModal'));
+  }
+
+  // Reset modal content before showing (optional, good practice)
+  document.getElementById("quizQuestionsContainer").innerHTML = '<p>Loading questions...</p>'; 
+  document.getElementById("quizModalFooter").style.display = 'none';
+  document.getElementById("quizResultText").textContent = '';
+  document.getElementById("modalNextLink").style.display = 'none';
+
+  // Clear previous form state if re-taking (important!)
+  document.getElementById("quizForm").reset(); 
+  // Manually clear radio buttons just in case reset() isn't enough
+  document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => radio.checked = false);
+
+
+  // Load the quiz questions into the modal body *now*
+  loadQuiz(); 
+
+  // Show the modal
+  quizModalInstance.show();
+}
+
+    const questions = [
+        { question: "What is data science?", options: ["A process of cleaning data", "A process of collecting data", "A field to extract insights from data", "None of the above"], correct: "A field to extract insights from data" },
+        { question: "Which of these is a key step in data preprocessing?", options: ["Cleaning data", "Visualization", "Machine Learning", "None of the above"], correct: "Cleaning data" },
+        { question: "What does EDA stand for?", options: ["Efficient Data Analysis", "Exploratory Data Analysis", "Engineered Data Analysis", "Enhanced Data Analytics"], correct: "Exploratory Data Analysis" },
+        { question: "What is the purpose of machine learning?", options: ["To program a system explicitly", "To improve system performance through data", "To clean data", "None of the above"], correct: "To improve system performance through data" },
+        { question: "Which of the following is a method of data visualization?", options: ["Histogram", "Decision Tree", "Regression", "None of the above"], correct: "Histogram" },
+        { question: "Which of the following is a commonly used data analysis tool?", options: ["Python", "Excel", "R", "All of the above"], correct: "All of the above" },
+        { question: "What is the first step in the data science process?", options: ["Data Preprocessing", "Data Collection", "Data Modeling", "Data Cleaning"], correct: "Data Collection" },
+        { question: "Which algorithm is used in machine learning?", options: ["Random Forest", "K-means", "Linear Regression", "All of the above"], correct: "All of the above" },
+        { question: "What type of data visualization is used to show relationships between two variables?", options: ["Scatter Plot", "Pie Chart", "Histogram", "Bar Chart"], correct: "Scatter Plot" },
+        { question: "What is the purpose of a confusion matrix?", options: ["To show the accuracy of a model", "To analyze classification results", "To represent the relationships between data points", "None of the above"], correct: "To analyze classification results" }
+    ];
+
+    function loadQuiz() {
+        const quizDiv = document.getElementById("quizQuestionsContainer");
+        quizDiv.innerHTML = ""
+        questions.forEach((q, index) => {
+            const qDiv = document.createElement("div");
+            qDiv.classList.add("mb-3", "p-3", "border", "rounded", "bg-white");
+            qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options.map((opt, i) => ` 
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `).join('')}`;
+            quizDiv.appendChild(qDiv);
+        });
+    }
+    document.getElementById("quizForm").onsubmit = function(event) {
+        event.preventDefault();
+        let score = 0;
+
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected && selected.value === q.correct) score++;
+        });
+
+        fetch("{% url 'data_science_beginner_quiz' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ score: score })
+        })
+        .then(response => response.json())
+        .then(data => {
+            let alertType = 'info'; 
+        let feedbackMsg = '';
+        // Assuming 'questions' array is globally available in this script
+        const totalQuestions = questions.length; 
+        const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // --- Define Navigation Targets ---
+        let navigationUrl = null;
+        let navigationDelay = 3000; // Delay in milliseconds (3 seconds)
+        let navigationMsg = "";
+
+        if (percentage < 40) {
+            // --- Score is less than 40% ---
+            alertType = 'warning';
+            feedbackMsg = 'Keep practicing! Let\'s try this level again.';
+            // Set URL to reload the current beginner quiz
+            navigationUrl = "{% url 'data_science_beginner_quiz' %}"; 
+            navigationMsg = " Reloading Beginner level...";
+
+        } else {
+            // --- Score is 40% or higher ---
+            alertType = 'success';
+            feedbackMsg = 'Good job! Moving to the next level.';
+             // Set URL to go to the intermediate quiz
+            navigationUrl = "{% url 'data_science_intermediate_quiz' %}";
+            navigationMsg = " Loading next level...";
+        }
+
+        // Append server message if provided (optional)
+        if (data.message) {
+             feedbackMsg += ` ${data.message}`; 
+        }
+
+        // --- Create Bootstrap Alert HTML ---
+        const alertHTML = `
+            <div class="alert alert-${alertType} alert-dismissible fade show" role="alert">
+                <strong>Score: ${score}/${totalQuestions}</strong><br> 
+                ${feedbackMsg} 
+                ${navigationUrl ? navigationMsg : ''} 
+            </div>
+        `;
+
+        // --- Display the Alert ---
+        const alertPlaceholder = document.getElementById('quizAlertPlaceholder');
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // --- Hide the Quiz Form ---
+        document.getElementById('quizForm').style.display = 'none';
+
+        // --- Handle Navigation (after delay) ---
+        if (navigationUrl) {
+            setTimeout(function() {
+                window.location.href = navigationUrl;
+            }, navigationDelay); 
+        } else {
+             // Optional: Handle cases with no navigation (e.g., after Advanced level)
+             // Maybe show the modal footer close button?
+             // document.getElementById('quizModalFooter').style.display = 'flex';
+             // document.getElementById('closeModalBtn').style.display = 'inline-block'; 
+        }
+    })
+    .catch(error => {
+        console.error("Error submitting score:", error);
+        const errorAlertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error submitting score.</strong> Please try again later or contact support.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const alertPlaceholder = document.getElementById('quizAlertPlaceholder');
+        alertPlaceholder.innerHTML = errorAlertHTML;
+        document.getElementById('quizForm').style.display = 'none';
+    });
+    };
+
+    showTopic(0);
+    loadQuiz();
+</script>
+
+{% endblock %}

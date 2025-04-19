@@ -1,0 +1,418 @@
+{% extends 'accounts/base_dashboard.html' %} {% block content %}
+
+<!-- Bootstrap Styles -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Sidebar -->
+    <nav
+      class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end"
+    >
+      <div class="position-sticky pt-3">
+        <h5 class="text-center text-white">Web Development Advanced Topics</h5>
+        <ul class="nav flex-column" id="topicList">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showTopic(0)"
+              >Advanced JavaScript (Async/Await, Promises)</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(1)"
+              >Node.js and Express</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(2)"
+              >Web Application Security Best Practices</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(3)"
+              >Progressive Web Apps (PWA)</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(4)"
+              >WebSockets and Real-Time Communication</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div id="topicContent" class="mt-4"></div>
+
+      <!-- Start Quiz Button -->
+      <div class="text-end mt-3" id="startQuizBtn" style="display: none">
+        <button class="btn btn-primary" onclick="startQuiz()">
+          Start Quiz
+        </button>
+      </div>
+
+      <!-- Quiz Section -->
+      <div
+        class="modal fade"
+        id="quizModal"
+        tabindex="-1"
+        aria-labelledby="quizModalLabel"
+        aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="quizModalLabel">
+                Web Development Beginner Quiz
+              </h5>
+            </div>
+            <div class="modal-body" id="quizModalBody">
+              <div id="quizAlertPlaceholder"></div>
+              <form id="quizForm">
+                <div id="quizQuestionsContainer" class="mt-3">
+                  <p>Loading questions...</p>
+                </div>
+                <button type="submit" class="btn btn-success mt-4">
+                  Submit Quiz
+                </button>
+              </form>
+            </div>
+            <div
+              class="modal-footer"
+              id="quizModalFooter"
+              style="display: none"
+            >
+              <p id="quizResultText" class="me-auto"></p>
+              <button
+                type="button"
+                id="closeModalBtn"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <a
+                href="#"
+                id="modalNextLink"
+                class="btn btn-primary"
+                style="display: none"
+                >Next Step</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+  <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary"
+    >← Back to Dashboard</a
+  >
+</div>
+
+<script>
+  const topics = [
+    {
+      title: "Advanced JavaScript (Async/Await, Promises)",
+      content:
+        "This section delves into advanced JavaScript concepts like asynchronous programming using Promises and async/await. Learn how to handle asynchronous operations efficiently.",
+    },
+    {
+      title: "Node.js and Express",
+      content:
+        "Node.js is a runtime environment for JavaScript, and Express is a web application framework for Node. This section introduces both technologies and shows how to build server-side applications with them.",
+    },
+    {
+      title: "Web Application Security Best Practices",
+      content:
+        "This section covers essential web security concepts, including preventing cross-site scripting (XSS), SQL injection, CSRF attacks, and best practices for securing web applications.",
+    },
+    {
+      title: "Progressive Web Apps (PWA)",
+      content:
+        "PWAs are modern web applications that offer native app-like experiences. Learn how to build fast, reliable, and engaging web apps that work offline and on any device.",
+    },
+    {
+      title: "WebSockets and Real-Time Communication",
+      content:
+        "Learn about WebSockets, a protocol for establishing a persistent connection between the client and the server. This enables real-time data transfer and is crucial for live updates in applications.",
+    },
+  ];
+
+  function showTopic(index) {
+    const topic = topics[index];
+    const topicContent = `
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+    document.getElementById("topicContent").innerHTML = topicContent;
+
+    // Highlight active topic
+    const links = document.querySelectorAll("#topicList .nav-link");
+    links.forEach((link) => link.classList.remove("active"));
+    links[index].classList.add("active");
+
+    // Show start quiz button only after last topic
+    document.getElementById("startQuizBtn").style.display =
+      index === topics.length - 1 ? "block" : "none";
+    document.getElementById("quizSection").style.display = "none"; // Hide quiz if navigating back
+  }
+
+  var quizModalInstance = null;
+
+  function startQuiz() {
+    document.getElementById("startQuizBtn").style.display = "none"; // Hide the start button
+
+    // Get or create the modal instance
+    if (!quizModalInstance) {
+      quizModalInstance = new bootstrap.Modal(
+        document.getElementById("quizModal")
+      );
+    }
+
+    // Reset modal content before showing (optional, good practice)
+    document.getElementById("quizQuestionsContainer").innerHTML =
+      "<p>Loading questions...</p>";
+    document.getElementById("quizModalFooter").style.display = "none";
+    document.getElementById("quizResultText").textContent = "";
+    document.getElementById("modalNextLink").style.display = "none";
+
+    // Clear previous form state if re-taking (important!)
+    document.getElementById("quizForm").reset();
+    // Manually clear radio buttons just in case reset() isn't enough
+    document
+      .querySelectorAll('#quizForm input[type="radio"]')
+      .forEach((radio) => (radio.checked = false));
+
+    // Load the quiz questions into the modal body *now*
+    loadQuiz();
+
+    // Show the modal
+    quizModalInstance.show();
+  }
+
+  const questions = [
+    {
+      question: "What does async/await do in JavaScript?",
+      options: [
+        "Makes asynchronous code look synchronous",
+        "Converts promises into callbacks",
+        "Handles synchronous operations",
+        "None of the above",
+      ],
+      correct: "Makes asynchronous code look synchronous",
+    },
+    {
+      question: "Which of the following is a Node.js framework?",
+      options: ["Express", "Angular", "React", "Vue"],
+      correct: "Express",
+    },
+    {
+      question: "What is the primary purpose of WebSockets?",
+      options: [
+        "Real-time communication",
+        "API requests",
+        "File uploads",
+        "Database queries",
+      ],
+      correct: "Real-time communication",
+    },
+    {
+      question: "Which HTTP method is used to send data to a server?",
+      options: ["GET", "POST", "PUT", "DELETE"],
+      correct: "POST",
+    },
+    {
+      question: "What is the key advantage of a PWA?",
+      options: [
+        "Offline capability",
+        "Native app features",
+        "Push notifications",
+        "All of the above",
+      ],
+      correct: "All of the above",
+    },
+    {
+      question: "Which of these is a common web security vulnerability?",
+      options: ["XSS", "CSS", "HTTP", "SQL"],
+      correct: "XSS",
+    },
+    {
+      question: "What does CSRF stand for?",
+      options: [
+        "Cross-Site Request Forgery",
+        "Cross-Site Resource Forgery",
+        "Common-Site Request Forgery",
+        "Cross-Site Risk Forgery",
+      ],
+      correct: "Cross-Site Request Forgery",
+    },
+    {
+      question: "Which is a correct use of WebSocket in JavaScript?",
+      options: [
+        "new WebSocket('ws://localhost')",
+        "new WebSocket('http://localhost')",
+        "WebSocket.open('localhost')",
+        "WebSocket.send('localhost')",
+      ],
+      correct: "new WebSocket('ws://localhost')",
+    },
+    {
+      question: "Which library would you use to build RESTful APIs in Node.js?",
+      options: ["Express", "React", "Vue", "Next.js"],
+      correct: "Express",
+    },
+    {
+      question: "What is the correct way to handle errors in async/await?",
+      options: [
+        "try-catch block",
+        "catch() method",
+        "finally() method",
+        "throw() method",
+      ],
+      correct: "try-catch block",
+    },
+  ];
+
+  function loadQuiz() {
+    const quizDiv = document.getElementById("quizQuestionsContainer");
+    quizDiv.innerHTML = "";
+    questions.forEach((q, index) => {
+      const qDiv = document.createElement("div");
+      qDiv.classList.add("mb-3", "p-3", "border", "rounded");
+      qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options
+                  .map(
+                    (opt, i) => ` 
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `
+                  )
+                  .join("")}`;
+      quizDiv.appendChild(qDiv);
+    });
+  }
+
+  document.getElementById("quizForm").onsubmit = function (event) {
+    event.preventDefault();
+    let score = 0;
+    questions.forEach((q, i) => {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (selected && selected.value === q.correct) score++;
+    });
+
+    fetch("{% url 'web_development_advanced_quiz' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ score: score }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        let alertType = "info";
+        let feedbackMsg = "";
+        // Assuming 'questions' array is globally available in this script
+        const totalQuestions = questions.length;
+        const percentage =
+          totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // --- Define Navigation Targets ---
+        let navigationUrl = null;
+        let navigationDelay = 3000; // Delay in milliseconds (3 seconds)
+        let navigationMsg = "";
+
+        if (percentage < 40) {
+          // --- Score is less than 40% ---
+          alertType = "warning";
+          feedbackMsg = "Keep practicing! Let's try this level again.";
+          // Set URL to reload the current beginner quiz
+          navigationUrl = "{% url 'web_development_advanced_quiz' %}";
+          navigationMsg = " Reloading Advance level...";
+        } else {
+          // --- Score is 40% or higher ---
+          alertType = "success";
+          // Use message from backend if available, or set a default
+          feedbackMsg = data.message || "Congratulations! Course Completed!";
+          // Set URL to go to the dashboard, passing completed course ID
+          if (data.course_completed_id) {
+            navigationUrl = `{% url 'student_dashboard' %}?completed=${data.course_completed_id}`;
+          } else {
+            navigationUrl = "{% url 'student_dashboard' %}"; // Fallback
+          }
+          navigationMsg = " Returning to dashboard...";
+        }
+
+        // Append server message if provided (optional)
+        if (data.message) {
+          feedbackMsg += ` ${data.message}`;
+        }
+
+        // --- Create Bootstrap Alert HTML ---
+        const alertHTML = `
+            <div class="alert alert-${alertType} alert-dismissible fade show" role="alert">
+                <strong>Score: ${score}/${totalQuestions}</strong><br> 
+                ${feedbackMsg} 
+                ${navigationUrl ? navigationMsg : ""} 
+            </div>
+        `;
+
+        // --- Display the Alert ---
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // --- Hide the Quiz Form ---
+        document.getElementById("quizForm").style.display = "none";
+
+        // --- Handle Navigation (after delay) ---
+        if (navigationUrl) {
+          setTimeout(function () {
+            window.location.href = navigationUrl;
+          }, navigationDelay);
+        } else {
+          // Optional: Handle cases with no navigation (e.g., after Advanced level)
+          // Maybe show the modal footer close button?
+          // document.getElementById('quizModalFooter').style.display = 'flex';
+          // document.getElementById('closeModalBtn').style.display = 'inline-block';
+        }
+      })
+      .catch((error) => {
+        console.error("Error submitting score:", error);
+        const errorAlertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error submitting score.</strong> Please try again later or contact support.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = errorAlertHTML;
+        document.getElementById("quizForm").style.display = "none";
+      });
+  };
+
+  // Initialize first topic and prepare quiz
+  showTopic(0);
+  loadQuiz();
+</script>
+
+{% endblock %}

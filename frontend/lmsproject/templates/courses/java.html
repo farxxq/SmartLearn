@@ -1,0 +1,101 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+{% block content %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            padding: 20px 0;
+        }
+
+        .course-card {
+            background-color: #ffffff;
+            width: 60%;
+            margin: 20px auto;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .course-card h3 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .level-btn {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+            border: none;
+        }
+
+        .level-btn:hover {
+            background-color: #45a049;
+        }
+
+        #startCourseBtn {
+            display: block;
+            margin: 10px auto;
+        }
+
+        .roadmap-img {
+            height: 500px;
+            width: 600px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            .course-card {
+                width: 90%;
+            }
+        }
+    </style>
+
+    <h1>Welcome to the Java Course!</h1>
+
+    <div id="introContent">
+        <img src="{% static 'images/roadmap_image.jpg' %}" alt="Java Roadmap" class="roadmap-img">
+        <p>Java is a high-level, object-oriented programming language known for its portability, security, and use in building cross-platform applications.</p>
+        <button class="level-btn" id="startCourseBtn">Start Course</button>
+    </div>
+
+    <div class="course-card" id="courseCard" style="display: none;">
+        <h3>Java</h3>
+        <p>Choose the level you want to begin with</p>
+        <button class="level-btn" onclick="location.href='/java-beginner/'">Beginner Level</button>
+        <button class="level-btn" onclick="location.href='/java-intermediate/'">Intermediate Level</button>
+        <button class="level-btn" onclick="location.href='/java-advanced/'">Advanced Level</button>
+    </div>
+
+    <script>
+        document.getElementById('startCourseBtn').addEventListener('click', () => {
+            document.getElementById('introContent').style.display = 'none';
+            document.getElementById('courseCard').style.display = 'block';
+        });
+    </script>
+{% endblock %}

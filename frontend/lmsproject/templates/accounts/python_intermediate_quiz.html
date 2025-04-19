@@ -1,0 +1,164 @@
+{% extends 'accounts/base_dashboard.html' %}
+
+{% block content %}
+
+<!-- Bootstrap Styles -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid">
+    <div class="row mt-4">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end">
+            <div class="position-sticky pt-3">
+                <h5 class="text-center">Python Intermediate Topics</h5>
+                <ul class="nav flex-column" id="topicList">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTopic(0)">Functions and Recursion</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(1)">Error Handling</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(2)">Modules and Packages</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(3)">List Comprehensions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="showTopic(4)">Decorators</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div id="topicContent" class="mt-4"></div>
+
+            <!-- Start Quiz Button -->
+            <div class="text-end mt-3" id="startQuizBtn" style="display: none;">
+                <button class="btn btn-primary" onclick="startQuiz()">Start Quiz</button>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="mt-4" id="quizSection" style="display: none;">
+                <h3 class="mb-3">Python Intermediate Level Quiz</h3>
+                <form id="quizForm" class="mb-4">
+                    <div id="quizQuestions" class="mt-3"></div>
+                    <button type="submit" class="btn btn-success mt-3">Submit Quiz</button>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+    <a href="{% url 'python_course' %}" class="btn btn-outline-primary">← Back to Course</a>
+</div>
+
+<script>
+    const topics = [
+        {
+            title: "Functions and Recursion",
+            content: "Learn about functions, passing arguments, and using recursion to solve problems."
+        },
+        {
+            title: "Error Handling",
+            content: "Understand how to handle errors and exceptions using try, except, finally blocks."
+        },
+        {
+            title: "Modules and Packages",
+            content: "Learn how to organize your Python code into modules and packages for better structure."
+        },
+        {
+            title: "List Comprehensions",
+            content: "Master list comprehensions to make your Python code more concise and efficient."
+        },
+        {
+            title: "Decorators",
+            content: "Learn how to modify functions and methods using decorators in Python."
+        }
+    ];
+
+    function showTopic(index) {
+        const topic = topics[index];
+        const topicContent = ` 
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+        document.getElementById("topicContent").innerHTML = topicContent;
+
+        // Highlight active topic
+        const links = document.querySelectorAll("#topicList .nav-link");
+        links.forEach(link => link.classList.remove("active"));
+        links[index].classList.add("active");
+
+        // Show start quiz button only after last topic
+        document.getElementById("startQuizBtn").style.display = (index === topics.length - 1) ? "block" : "none";
+        document.getElementById("quizSection").style.display = "none";  // Hide quiz if navigating back
+    }
+
+    function startQuiz() {
+        document.getElementById("quizSection").style.display = "block";
+        document.getElementById("startQuizBtn").style.display = "none";
+    }
+
+    const questions = [
+        { question: "What does recursion mean in Python?", options: ["Function calling itself", "Iterating over a list", "Using loops", "None of the above"], correct: "Function calling itself" },
+        { question: "Which of the following is used to handle exceptions?", options: ["try", "except", "finally", "all of the above"], correct: "all of the above" },
+        { question: "What is a Python module?", options: ["A type of data", "A collection of functions and variables", "A class in Python", "None of the above"], correct: "A collection of functions and variables" },
+        { question: "Which of these is the correct syntax for list comprehension?", options: ["[x for x in range(10)]", "[x in range(10) for x]", "for x in range(10): [x]", "list[x for x in range(10)]"], correct: "[x for x in range(10)]" },
+        { question: "What does a decorator do in Python?", options: ["Modifies a function", "Calls a function", "Creates a new function", "None of the above"], correct: "Modifies a function" },
+        { question: "What does the 'finally' block do in Python?", options: ["It always runs", "It runs only if an exception occurs", "It runs only if no exception occurs", "It does not run at all"], correct: "It always runs" },
+        { question: "How do you import a module in Python?", options: ["import module_name", "from module_name import", "using module_name", "import as module_name"], correct: "import module_name" },
+        { question: "Which of the following is the correct way to create a decorator?", options: ["def decorator(func):", "def func(decorator):", "def wrapper(func):", "None of the above"], correct: "def decorator(func):" },
+        { question: "What is the output of this list comprehension: [x**2 for x in range(5)]?", options: ["[1, 4, 9, 16, 25]", "[0, 1, 4, 9, 16]", "[1, 2, 3, 4, 5]", "[0, 2, 4, 6, 8]"], correct: "[0, 1, 4, 9, 16]" },
+        { question: "How do you handle multiple exceptions in a single try-except block?", options: ["except (Error1, Error2):", "except Error1, Error2:", "except [Error1, Error2]:", "except (Error1 or Error2):"], correct: "except (Error1, Error2):" }
+    ];
+
+    function loadQuiz() {
+        const quizDiv = document.getElementById("quizQuestions");
+        questions.forEach((q, index) => {
+            const qDiv = document.createElement("div");
+            qDiv.classList.add("mb-3", "p-3", "border", "rounded");
+            qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options.map((opt, i) => ` 
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `).join('')}
+            `;
+            quizDiv.appendChild(qDiv);
+        });
+    }
+
+    document.getElementById("quizForm").onsubmit = function(event) {
+        event.preventDefault();
+        let score = 0;
+        questions.forEach((q, i) => {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected && selected.value === q.correct) score++;
+        });
+
+        fetch("{% url 'python_intermediate_quiz' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({ score: score })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(`You scored ${score}/10`);
+            if (data.message) alert(data.message);
+            if (data.redirect_url) window.location.href = data.redirect_url;
+        })
+        .catch(error => {
+            console.error("Error submitting score:", error);
+            alert("Something went wrong. Please try again later.");
+        });
+    };
+
+    // Initialize first topic and prepare quiz
+    showTopic(0);
+    loadQuiz();
+</script>
+
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends 'accounts/base_dashboard.html' %} 
+{% load static %} 
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      /* --- Add relevant styles here --- */
+      .enroll-section,
+      .level-section {
+        background-color: #ffffff;
+        width: 80%; /* Adjust width */
+        margin: 20px auto;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+      }
+      .level-btn,
+      .enroll-btn {
+        padding: 12px 20px;
+        background-color: #4caf50; /* Green for levels */
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 5px;
+        transition: background-color 0.3s;
+        border: none;
+      }
+      .enroll-btn {
+        background-color: #0d6efd; /* Blue for enroll */
+      }
+      .level-btn:hover {
+        background-color: #45a049;
+      }
+      .enroll-btn:hover {
+        background-color: #0b5ed7;
+      }
+      .enrolled-message {
+        font-weight: bold;
+        color: #198754;
+        margin-bottom: 15px;
+      }
+      .course-description {
+        margin-top: 20px;
+        margin-bottom: 30px;
+        text-align: left;
+      }
+      .topics-section {
+        margin-top: 30px;
+      }
+      .topics-list {
+        list-style: none;
+        padding-left: 0;
+      }
+      .topics-list li {
+        background-color: #e9ecef;
+        margin-bottom: 5px;
+        padding: 10px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    {# --- Use course object from context --- #}
+    <h1 class="text-center mb-4">Welcome to the {{ course.name }} Course!</h1>
+
+    {# --- Display Description --- #}
+    <div class="course-description">
+      <p>{{ course.description }}</p>
+      {# You could add image here if stored in model: <img src="{{ course.image.url }}" ... /> #}
+    </div>
+
+    {# --- Conditional Enrollment Button / Level Selection --- #} 
+    {% if user.is_authenticated %}
+
+      {% if not is_enrolled %}  {# --- Show Enroll Button--- #}
+        <div class="enroll-section">
+          <p>Click below to enroll in this course.</p>
+          {# Use course.id for the enroll URL #}
+          <form
+            action="{% url 'enroll_course' course.id %}"
+            method="POST"
+            style="display: inline"
+          >
+            {% csrf_token %}
+            <button type="submit" class="enroll-btn">
+              Enroll in {{ course.name }}
+            </button>
+          </form>
+        </div>
+      {% else %} {# --- Show Level Selection / Topics (User is Enrolled) --- #}
+
+        <div class="level-section">
+          <p class="enrolled-message">You are enrolled in this course!</p>
+          <p>Choose the level you want to begin with:</p> {# --- Dynamically link to quizzes (Needs Quiz URLs to be generic too ideally) --- #}       
+          <h2 style="color:red; background-color:yellow;">DEBUG: Course Name = '{{ course.name }}'</h2>
+          {% if course.name == "Java" %}
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'java_beginner_quiz' %}"
+            >
+              Beginner Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'java_intermediate_quiz' %}"
+            >
+              Intermediate Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'java_advanced_quiz' %}"
+            >
+              Advanced Level
+            </button>
+
+          {% elif course.name == "Python" %}
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'python_beginner_quiz' %}"
+            >
+              Beginner Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'python_intermediate_quiz' %}"
+            >
+              Intermediate Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'python_advanced_quiz' %}"
+            >
+              Advanced Level
+            </button>
+
+          {% elif course.name == "Cloud Computing" %}
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'cloud_computing_beginner_quiz' %}"
+            >
+              Beginner Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'cloud_computing_intermediate_quiz' %}"
+            >
+              Intermediate Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'cloud_computing_advanced_quiz' %}"
+            >
+              Advanced Level
+            </button>
+
+          {% elif course.name == "Data Science" %}
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'data_science_beginner_quiz' %}"
+            >
+              Beginner Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'data_science_intermediate_quiz' %}"
+            >
+              Intermediate Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'data_science_advanced_quiz' %}"
+            >
+              Advanced Level
+            </button>
+
+          {% elif course.name == "Web Development" %}
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'web_development_beginner_quiz' %}"
+            >
+              Beginner Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'web_development_intermediate_quiz' %}"
+            >
+              Intermediate Level
+            </button>
+            <button
+              class="level-btn level-link-button"
+              data-url="{% url 'web_development_advanced_quiz' %}"
+            >
+              Advanced Level
+            </button>
+
+          {% else %}
+          <p>Level selection not available for this course yet.</p>
+          {% endif %}
+        </div>
+
+        {# --- Display Topics --- #}
+        <div class="topics-section">
+          <h4>Course Topics:</h4>
+          {% if topics %}
+            <ul class="topics-list">
+              {% for topic in topics %}
+                <li>{{ topic.name }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>No topics listed for this course yet.</p>
+          {% endif %}
+        </div>
+        {% endif %} 
+      {% else %}
+    <div class="enroll-section">
+      <p>
+        <a href="{% url 'login' %}?next={{ request.path }}">Login</a> to enroll
+        in this course.
+      </p>
+    </div>
+    {% endif %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Find all buttons with the class 'level-link-button'
+        const levelButtons = document.querySelectorAll(".level-link-button");
+
+        levelButtons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            // Get the URL from the data-url attribute
+            const targetUrl = this.getAttribute("data-url");
+            if (targetUrl) {
+              // Navigate to the URL
+              window.location.href = targetUrl;
+            } else {
+              console.error("No data-url attribute found on button:", this);
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
+{% endblock %}

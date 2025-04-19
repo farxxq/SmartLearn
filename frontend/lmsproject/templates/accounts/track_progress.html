@@ -1,0 +1,60 @@
+{% extends 'accounts/base_dashboard.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Track Your Progress</h2>
+
+    <!-- Progress Bar -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white text-center">
+            <h4 class="card-title">Your Overall Progress</h4>
+        </div>
+        <div class="card-body">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar"
+                     style="width: {{ total_progress }}%;"
+                     aria-valuenow="{{ total_progress }}"
+                     aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+            <p class="mt-2">{{ total_progress }}% Completed</p>
+        </div>
+    </div>
+
+    <!-- Pending Topics -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-white text-center">
+            <h4 class="card-title">Pending Topics</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for topic in pending_topics %}
+                    <li class="list-group-item">
+                        <strong>{{ topic }} Level</strong>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">No pending topics.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Suggested Courses -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white text-center">
+            <h4 class="card-title">Suggested Courses</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for course in suggested_courses %}
+                    <li class="list-group-item">
+                        <strong>{{ course.name }}</strong> - Prerequisite for this course is: {{ course.prerequisite }}
+                    </li>
+                {% empty %}
+                    <li class="list-group-item">No suggested courses at this time.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,400 @@
+{% extends 'accounts/base_dashboard.html' %} {% block content %}
+
+<!-- Bootstrap Styles -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Sidebar -->
+    <nav
+      class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end"
+    >
+      <div class="position-sticky pt-3">
+        <h5 class="text-center mb-5" style="color: aqua; font-weight: 500">
+          Web Development Beginner Topics
+        </h5>
+        <ul class="nav flex-column" id="topicList">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showTopic(0)"
+              >Introduction to Web Development</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(1)">HTML Basics</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(2)"
+              >CSS Fundamentals</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(3)"
+              >JavaScript Basics</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(4)"
+              >Introduction to Responsive Design</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div id="topicContent" class="mt-4"></div>
+
+      <!-- Start Quiz Button -->
+      <div class="text-end mt-3" id="startQuizBtn" style="display: none">
+        <button class="btn btn-primary" onclick="startQuiz()">
+          Start Quiz
+        </button>
+      </div>
+
+      <!-- Quiz Section -->
+        <div
+          class="modal fade"
+          id="quizModal"
+          tabindex="-1"
+          aria-labelledby="quizModalLabel"
+          aria-hidden="true"
+          data-bs-backdrop="static"
+          data-bs-keyboard="false"
+        >
+          <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="quizModalLabel">
+                  Web Development Beginner Quiz
+                </h5>
+              </div>
+              <div class="modal-body" id="quizModalBody">
+                <div id="quizAlertPlaceholder"></div>
+                <form id="quizForm">
+                  <div id="quizQuestionsContainer" class="mt-3">
+                    <p>Loading questions...</p>
+                  </div>
+                  <button type="submit" class="btn btn-success mt-4">
+                    Submit Quiz
+                  </button>
+                </form>
+              </div>
+              <div
+                class="modal-footer"
+                id="quizModalFooter"
+                style="display: none"
+              >
+                <p id="quizResultText" class="me-auto"></p>
+                <button
+                  type="button"
+                  id="closeModalBtn"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Close
+                </button>
+                <a
+                  href="#"
+                  id="modalNextLink"
+                  class="btn btn-primary"
+                  style="display: none"
+                  >Next Step</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+    </main>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+  <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary"
+    >← Back to Dashboard</a
+  >
+</div>
+
+<script>
+  const topics = [
+    {
+      title: "Introduction to Web Development",
+      content:
+        "Web development is the process of creating websites and web applications. It involves a combination of coding languages such as HTML, CSS, JavaScript, and backend technologies.",
+    },
+    {
+      title: "HTML Basics",
+      content:
+        "HTML (HyperText Markup Language) is the standard language for creating web pages. It defines the structure and content of a webpage using various tags.",
+    },
+    {
+      title: "CSS Fundamentals",
+      content:
+        "CSS (Cascading Style Sheets) is used to style and format the layout of a webpage. It controls the visual presentation of HTML elements.",
+    },
+    {
+      title: "JavaScript Basics",
+      content:
+        "JavaScript is a programming language that allows you to add interactivity to websites. It can manipulate HTML and CSS and is essential for dynamic web applications.",
+    },
+    {
+      title: "Introduction to Responsive Design",
+      content:
+        "Responsive design is an approach to web design that ensures webpages look good on all devices by adapting to different screen sizes.",
+    },
+  ];
+
+  function showTopic(index) {
+    const topic = topics[index];
+    const topicContent = `
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+    document.getElementById("topicContent").innerHTML = topicContent;
+
+    // Highlight active topic
+    const links = document.querySelectorAll("#topicList .nav-link");
+    links.forEach((link) => link.classList.remove("active"));
+    links[index].classList.add("active");
+
+    // Show start quiz button only after last topic
+    document.getElementById("startQuizBtn").style.display =
+      index === topics.length - 1 ? "block" : "none";
+    document.getElementById("quizSection").style.display = "none"; // Hide quiz if navigating back
+  }
+
+  var quizModalInstance = null;
+
+  function startQuiz() {
+    document.getElementById("startQuizBtn").style.display = "none"; // Hide the start button
+
+    // Get or create the modal instance
+    if (!quizModalInstance) {
+         quizModalInstance = new bootstrap.Modal(document.getElementById('quizModal'));
+    }
+
+    // Reset modal content before showing (optional, good practice)
+    document.getElementById("quizQuestionsContainer").innerHTML = '<p>Loading questions...</p>'; 
+    document.getElementById("quizModalFooter").style.display = 'none';
+    document.getElementById("quizResultText").textContent = '';
+    document.getElementById("modalNextLink").style.display = 'none';
+
+    // Clear previous form state if re-taking (important!)
+    document.getElementById("quizForm").reset(); 
+    // Manually clear radio buttons just in case reset() isn't enough
+    document.querySelectorAll('#quizForm input[type="radio"]').forEach(radio => radio.checked = false);
+
+
+    // Load the quiz questions into the modal body *now*
+    loadQuiz(); 
+
+    // Show the modal
+    quizModalInstance.show();
+}
+
+  const questions = [
+    {
+      question: "What is HTML?",
+      options: [
+        "A programming language",
+        "A markup language for web pages",
+        "A stylesheet",
+        "A database",
+      ],
+      correct: "A markup language for web pages",
+    },
+    {
+      question: "Which tag is used to define a link in HTML?",
+      options: ["a", "link", "url", "button"],
+      correct: "a",
+    },
+    {
+      question: "What does CSS stand for?",
+      options: [
+        "Cascading Style Sheets",
+        "Creative Style Sheets",
+        "Computer Style Sheets",
+        "None of the above",
+      ],
+      correct: "Cascading Style Sheets",
+    },
+    {
+      question: "What is the purpose of JavaScript?",
+      options: [
+        "To style web pages",
+        "To create web page structure",
+        "To make websites interactive",
+        "To store data",
+      ],
+      correct: "To make websites interactive",
+    },
+    {
+      question: "Which property is used to change the background color in CSS?",
+      options: ["background-color", "bg-color", "color", "background"],
+      correct: "background-color",
+    },
+    {
+      question: "What is a media query in responsive design?",
+      options: [
+        "A CSS technique for styling based on screen size",
+        "A JavaScript function",
+        "A database query",
+        "None of the above",
+      ],
+      correct: "A CSS technique for styling based on screen size",
+    },
+    {
+      question: "Which HTML element is used for the largest heading?",
+      options: ["h1", "h2", "header", "title"],
+      correct: "h1",
+    },
+    {
+      question: "What does 'JS' in JavaScript stand for?",
+      options: [
+        "Just Scripting",
+        "JavaScript",
+        "Jolly Scripting",
+        "None of the above",
+      ],
+      correct: "JavaScript",
+    },
+    {
+      question: "Which property is used to change the font size in CSS?",
+      options: ["font-size", "text-size", "font", "text-style"],
+      correct: "font-size",
+    },
+    {
+      question: "Which of the following is a web development framework?",
+      options: ["React", "Java", "Angular", "All of the above"],
+      correct: "All of the above",
+    },
+  ];
+
+  function loadQuiz() {
+    const quizDiv = document.getElementById("quizQuestionsContainer");
+    quizDiv.innerHTML = '';
+    questions.forEach((q, index) => {
+      const qDiv = document.createElement("div");
+      qDiv.classList.add("mb-3", "p-3", "border", "rounded");
+      qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options
+                  .map(
+                    (opt, i) => ` 
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `
+                  )
+                  .join("")}`;
+      quizDiv.appendChild(qDiv);
+    });
+  }
+
+  document.getElementById("quizForm").onsubmit = function (event) {
+    event.preventDefault();
+    let score = 0;
+    questions.forEach((q, i) => {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (selected && selected.value === q.correct) score++;
+    });
+
+    fetch("{% url 'web_development_beginner_quiz' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ score: score }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        let alertType = 'info'; 
+        let feedbackMsg = '';
+        // Assuming 'questions' array is globally available in this script
+        const totalQuestions = questions.length; 
+        const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // --- Define Navigation Targets ---
+        let navigationUrl = null;
+        let navigationDelay = 3000; // Delay in milliseconds (3 seconds)
+        let navigationMsg = "";
+
+        if (percentage < 40) {
+            // --- Score is less than 40% ---
+            alertType = 'warning';
+            feedbackMsg = 'Keep practicing! Let\'s try this level again.';
+            // Set URL to reload the current beginner quiz
+            navigationUrl = "{% url 'web_development_beginner_quiz' %}"; 
+            navigationMsg = " Reloading Beginner level...";
+
+        } else {
+            // --- Score is 40% or higher ---
+            alertType = 'success';
+            feedbackMsg = 'Good job! Moving to the next level.';
+             // Set URL to go to the intermediate quiz
+            navigationUrl = "{% url 'web_development_intermediate_quiz' %}";
+            navigationMsg = " Loading next level...";
+        }
+
+        // Append server message if provided (optional)
+        if (data.message) {
+             feedbackMsg += ` ${data.message}`; 
+        }
+
+        // --- Create Bootstrap Alert HTML ---
+        const alertHTML = `
+            <div class="alert alert-${alertType} alert-dismissible fade show" role="alert">
+                <strong>Score: ${score}/${totalQuestions}</strong><br> 
+                ${feedbackMsg} 
+                ${navigationUrl ? navigationMsg : ''} 
+            </div>
+        `;
+
+        // --- Display the Alert ---
+        const alertPlaceholder = document.getElementById('quizAlertPlaceholder');
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // --- Hide the Quiz Form ---
+        document.getElementById('quizForm').style.display = 'none';
+
+        // --- Handle Navigation (after delay) ---
+        if (navigationUrl) {
+            setTimeout(function() {
+                window.location.href = navigationUrl;
+            }, navigationDelay); 
+        } else {
+             // Optional: Handle cases with no navigation (e.g., after Advanced level)
+             // Maybe show the modal footer close button?
+             // document.getElementById('quizModalFooter').style.display = 'flex';
+             // document.getElementById('closeModalBtn').style.display = 'inline-block'; 
+        }
+    })
+    .catch(error => {
+        console.error("Error submitting score:", error);
+        const errorAlertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error submitting score.</strong> Please try again later or contact support.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const alertPlaceholder = document.getElementById('quizAlertPlaceholder');
+        alertPlaceholder.innerHTML = errorAlertHTML;
+        document.getElementById('quizForm').style.display = 'none';
+    });
+  };
+
+  // Initialize first topic and prepare quiz
+  showTopic(0);
+  loadQuiz();
+</script>
+
+{% endblock %}

@@ -1,0 +1,698 @@
+{% extends 'accounts/base_dashboard.html' %} {% block content %}
+<!-- Bootstrap 5 Styles -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+  /* Custom Styles */
+  .sidebar {
+    background-color: #0d6efd;
+    color: white;
+    height: 100vh;
+    padding-top: 20px;
+  }
+
+  .sidebar h5 {
+    color: white;
+    font-size: 20px;
+  }
+
+  .sidebar .nav-item .nav-link {
+    color: white;
+    padding: 12px;
+  }
+
+  .sidebar .nav-item .nav-link:hover {
+    background-color: #0056b3;
+  }
+
+  .active {
+    background-color: #004085;
+  }
+
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-check-label {
+    font-weight: 500;
+  }
+
+  .quiz-container {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .quiz-container h3 {
+    font-size: 24px;
+  }
+
+  .btn-custom {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-custom:hover {
+    background-color: #218838;
+  }
+
+  .btn-outline-custom {
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+  }
+
+  .btn-outline-custom:hover {
+    background-color: #0d6efd;
+    color: white;
+  }
+
+  .quiz-question {
+    margin-bottom: 20px;
+  }
+
+  .quiz-options {
+    margin-left: 20px;
+  }
+
+  .form-check-input:checked {
+    background-color: #0d6efd;
+  }
+  body {
+    background-color: #f4f9fd; /* Soft blue background */
+  }
+
+  #topicContent {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  #topicContent ul {
+    list-style-type: none;
+    padding-left: 1rem;
+  }
+
+  #topicContent ul li::before {
+    content: "✔️ ";
+    margin-right: 0.5rem;
+  }
+
+  #topicContent code {
+    background-color: #eef3f7;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Sidebar -->
+    <nav
+      class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end"
+    >
+      <div class="position-sticky pt-3">
+        <h5 class="text-center">Intermediate Data Science Topics</h5>
+        <ul class="nav flex-column" id="topicList">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showTopic(0)"
+              >Topic 1: Advanced Data Preprocessing</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(1)"
+              >Topic 2: Feature Engineering and Selection</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(2)"
+              >Topic 3: Machine Learning Algorithms</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(3)"
+              >Topic 4: Model Evaluation and Tuning</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(4)"
+              >Topic 5: Deep Learning Introduction</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div id="topicContent" class="mt-4"></div>
+
+      <!-- Start Quiz Button -->
+      <div class="text-end mt-3" id="startQuizBtn" style="display: none">
+        <button class="btn btn-custom" onclick="startQuiz()">Start Quiz</button>
+      </div>
+
+      <!-- Quiz Section -->
+      <div
+        class="modal fade"
+        id="quizModal"
+        tabindex="-1"
+        aria-labelledby="quizModalLabel"
+        aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="quizModalLabel">
+                Web Development Beginner Quiz
+              </h5>
+            </div>
+            <div class="modal-body" id="quizModalBody">
+              <div id="quizAlertPlaceholder"></div>
+              <form id="quizForm">
+                <div id="quizQuestionsContainer" class="mt-3">
+                  <p>Loading questions...</p>
+                </div>
+                <button type="submit" class="btn btn-success mt-4">
+                  Submit Quiz
+                </button>
+              </form>
+            </div>
+            <div
+              class="modal-footer"
+              id="quizModalFooter"
+              style="display: none"
+            >
+              <p id="quizResultText" class="me-auto"></p>
+              <button
+                type="button"
+                id="closeModalBtn"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <a
+                href="#"
+                id="modalNextLink"
+                class="btn btn-primary"
+                style="display: none"
+                >Next Step</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+  <a href="{% url 'student_dashboard' %}" class="btn btn-outline-custom"
+    >← Back to Dashboard</a
+  >
+</div>
+
+<script>
+  const topics = [
+    {
+      title: "Advanced Data Preprocessing",
+      content: `
+                <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                    <h4 class="text-primary mb-3"> Advanced Data Preprocessing</h4>
+                    <p><strong>Advanced Data Preprocessing</strong> involves a set of sophisticated techniques to prepare raw data for analysis and modeling. It ensures your dataset is clean, consistent, and optimized for training machine learning models.</p>
+
+                    <p><strong>Key Techniques include:</strong></p>
+                    <ul>
+                        <li> <strong>Handling Missing Values:</strong> Imputation using mean, median, mode, or predictive models.</li>
+                        <li> <strong>Scaling Features:</strong> Normalize with Min-Max, Z-score, or Robust Scaling.</li>
+                        <li> <strong>Encoding Categorical Variables:</strong> Label Encoding, One-Hot Encoding, or Ordinal Encoding.</li>
+                        <li> <strong>Normalizing Data:</strong> Log or Power Transform to reduce skewness.</li>
+                        <li> <strong>Outlier Detection:</strong> Use Z-score, IQR, or Winsorization to detect and treat outliers.</li>
+                        <li> <strong>Feature Engineering:</strong> Create meaningful features from raw ones.</li>
+                        <li> <strong>Feature Selection:</strong> Remove redundant or irrelevant features using filter, wrapper, or embedded methods.</li>
+                    </ul>
+
+                    <p><strong>Why It's Important:</strong></p>
+                    <ul>
+                        <li> <strong>Improves Model Accuracy:</strong> Clean data enables better learning.</li>
+                        <li> <strong>Reduces Bias:</strong> Minimizes misleading patterns from noise.</li>
+                        <li> <strong>Boosts Efficiency:</strong> Saves training time and computational resources.</li>
+                        <li> <strong>Enhances Interpretability:</strong> Transforms data into meaningful formats.</li>
+                    </ul>
+
+                    <p><strong>Common Tools & Libraries:</strong></p>
+                    <ul>
+                        <li> <strong>Pandas:</strong> Data manipulation and transformation.</li>
+                        <li> <strong>Scikit-learn:</strong> Tools like <code>StandardScaler</code>, <code>SimpleImputer</code>, <code>OneHotEncoder</code>.</li>
+                        <li> <strong>NumPy:</strong> Array operations and mathematical functions.</li>
+                    </ul>
+
+                    <p class="mt-3"><strong> Watch this quick tutorial:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/9r5oD1n9xHY" 
+                                title="Data Preprocessing in Machine Learning | Data Science Tutorial" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `,
+    },
+    {
+      title: "Feature Engineering and Selection",
+      content: `
+                <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                    <h4 class="text-primary mb-3"> Feature Engineering and Selection</h4>
+                    <p><strong>Feature Engineering</strong> is the process of transforming raw data into features that better represent the underlying problem to the predictive models, resulting in improved model accuracy on unseen data. Feature engineering includes:</p>
+
+                    <ul>
+                        <li> <strong>Creating New Features:</strong> You can combine, decompose, or extract parts of existing features (e.g., creating "age_group" from an age column).</li>
+                        <li> <strong>Encoding Categorical Variables:</strong> Converting non-numeric variables into numeric using techniques like One-Hot Encoding, Label Encoding, or Target Encoding.</li>
+                        <li> <strong>Scaling Features:</strong> Techniques like Min-Max scaling, Z-score standardization, and Robust Scaling to ensure that features are on the same scale.</li>
+                        <li> <strong>Handling Missing Data:</strong> Imputation or removal of missing data using mean, median, mode, or predictive models.</li>
+                        <li> <strong>Feature Transformation:</strong> Applying transformations like logarithms, polynomial features, or interaction terms to make the data more suitable for modeling.</li>
+                    </ul>
+
+                    <p><strong>Feature Selection</strong> involves choosing the most important features from your data. This process helps in reducing overfitting, improving model accuracy, and decreasing training time. Key methods for feature selection include:</p>
+
+                    <ul>
+                        <li> <strong>Filter Methods:</strong> Using statistical tests (e.g., Chi-square, correlation coefficients) to filter out irrelevant features.</li>
+                        <li> <strong>Wrapper Methods:</strong> Using a machine learning model (e.g., recursive feature elimination) to evaluate feature subsets.</li>
+                        <li> <strong>Embedded Methods:</strong> Feature selection happens as part of the model training process (e.g., Lasso regression, decision trees).</li>
+                    </ul>
+
+                    <p class="mt-3"><strong>Why Feature Engineering and Selection Matter:</strong></p>
+                    <ul>
+                        <li> <strong>Improves Model Performance:</strong> Proper features allow the model to capture the relevant patterns more effectively.</li>
+                        <li> <strong>Prevents Overfitting:</strong> By removing irrelevant features, the model generalizes better on unseen data.</li>
+                        <li> <strong>Reduces Computation Time:</strong> Selecting only the relevant features can reduce the complexity of the model.</li>
+                        <li> <strong>Better Interpretation:</strong> Helps in creating a model that is easier to interpret and understand by humans.</li>
+                    </ul>
+
+                    <p><strong>Learn more about Feature Engineering and Selection from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/8jJdSxxwQWk" 
+                                title="Feature Engineering and Feature Selection | Data Science | Machine Learning Tutorial" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `,
+    },
+    {
+      title: "Machine Learning Algorithms",
+      content: `
+                <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                    <h4 class="text-primary mb-3"> Machine Learning Algorithms</h4>
+                    <p><strong>Machine Learning (ML) Algorithms</strong> are methods used to allow computers to learn from data and make predictions or decisions without being explicitly programmed. There are several types of machine learning algorithms, each suited to different types of data and problems. Let's explore some of the most commonly used algorithms:</p>
+                    
+                    <ul>
+                        <li> <strong>Decision Trees:</strong> A tree-like structure where each node represents a decision based on a feature, and each leaf represents an outcome or class. They're intuitive and easy to interpret but can suffer from overfitting.</li>
+                        <li> <strong>Random Forest:</strong> An ensemble method that creates multiple decision trees, each trained on a random subset of the data, and then combines their predictions. It helps reduce overfitting and improves accuracy.</li>
+                        <li> <strong>Support Vector Machines (SVM):</strong> A classification algorithm that finds the optimal hyperplane separating data into classes. It works well with both linear and non-linear data and is effective in high-dimensional spaces.</li>
+                        <li> <strong>k-Nearest Neighbors (k-NN):</strong> A simple, non-parametric algorithm that classifies data based on the majority class among the k-nearest neighbors in the feature space. It is easy to understand but can be computationally expensive for large datasets.</li>
+                    </ul>
+
+                    <p><strong>Applications of Machine Learning Algorithms:</strong></p>
+                    <ul>
+                        <li> <strong>Decision Trees & Random Forest:</strong> Widely used for classification problems such as predicting customer churn, spam detection, and medical diagnosis.</li>
+                        <li> <strong>Support Vector Machines:</strong> Commonly used in text classification (e.g., sentiment analysis) and image recognition.</li>
+                        <li> <strong>k-NN:</strong> Used in recommendation systems (e.g., movie recommendations), handwritten digit recognition, and anomaly detection.</li>
+                    </ul>
+
+                    <p><strong>Choosing the Right Algorithm:</strong> The choice of algorithm depends on the nature of the problem, the data, and the desired outcome. For example:</p>
+                    <ul>
+                        <li> If you have a large dataset with many features, <strong>Random Forest</strong> is often a good choice.</li>
+                        <li> If you need interpretability and a simple model, <strong>Decision Trees</strong> might be ideal.</li>
+                        <li> If you need a powerful classifier that works well in high-dimensional space, <strong>SVM</strong> is a strong candidate.</li>
+                        <li> If your data is labeled and you want a simple, effective classification method, <strong>k-NN</strong> might work well.</li>
+                    </ul>
+
+                    <p><strong>Learn more about Machine Learning Algorithms from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/3mFcWSdX2fM" 
+                                title="Machine Learning Algorithms | Introduction to Algorithms | Data Science Tutorial" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `,
+    },
+    {
+      title: "Model Evaluation and Tuning",
+      content: `
+                <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                    <h4 class="text-primary mb-3"> Model Evaluation and Tuning</h4>
+                    <p><strong>Model Evaluation</strong> is a critical step in the machine learning pipeline. It involves assessing the performance of a model on unseen data to ensure it generalizes well. The goal is to choose the best model that can make accurate predictions on new, unseen data.</p>
+                    
+                    <p><strong>Key Evaluation Metrics:</strong></p>
+                    <ul>
+                        <li> <strong>Accuracy:</strong> The proportion of correct predictions out of all predictions made. It's useful when the classes are balanced.</li>
+                        <li> <strong>Precision:</strong> The proportion of true positive predictions out of all positive predictions. It’s important when false positives are costly (e.g., email spam detection).</li>
+                        <li> <strong>Recall:</strong> The proportion of true positive predictions out of all actual positives. It's critical when false negatives are costly (e.g., disease diagnosis).</li>
+                        <li> <strong>F1 Score:</strong> The harmonic mean of precision and recall. It’s a balanced measure of the model’s performance, especially when there’s an imbalance between classes.</li>
+                        <li> <strong>Confusion Matrix:</strong> A table used to evaluate the performance of classification models by showing the true positives, true negatives, false positives, and false negatives.</li>
+                    </ul>
+
+                    <p><strong>Model Tuning</strong> is the process of improving the model’s performance by adjusting hyperparameters. Hyperparameters are the parameters that are set before training the model (e.g., learning rate, number of trees in a random forest, or depth of a decision tree).</p>
+
+                    <p><strong>Techniques for Model Tuning:</strong></p>
+                    <ul>
+                        <li> <strong>Grid Search:</strong> A technique for finding the best combination of hyperparameters by exhaustively searching through a predefined set of values.</li>
+                        <li> <strong>Random Search:</strong> A less computationally expensive alternative to Grid Search, where random combinations of hyperparameters are tested.</li>
+                        <li> <strong>Cross Validation:</strong> A technique used to assess how well a model generalizes by splitting the data into multiple subsets and training/evaluating the model multiple times.</li>
+                        <li> <strong>RandomizedSearchCV:</strong> A variant of Grid Search where random combinations of hyperparameters are selected and evaluated for a faster approach to hyperparameter tuning.</li>
+                    </ul>
+
+                    <p><strong>Why Tuning is Important:</strong> Hyperparameter tuning ensures that the model is trained to its full potential, helping to avoid overfitting or underfitting. The right set of hyperparameters can improve accuracy, reduce bias, and lead to better model performance on unseen data.</p>
+
+                    <p><strong>Learn more about Model Evaluation and Tuning from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/FU0OZ9L4O3I" 
+                                title="Model Evaluation and Tuning | Machine Learning Tutorial" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `,
+    },
+
+    {
+      title: "Deep Learning Introduction",
+      content: `
+        <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+            <h4 class="text-primary mb-3"> Deep Learning Introduction</h4>
+            <p><strong>Deep Learning</strong> is a subset of machine learning that uses algorithms inspired by the structure and function of the brain, called artificial neural networks. Deep learning has revolutionized the field of AI by enabling machines to automatically learn and improve from large amounts of data.</p>
+            
+            <p><strong>Key Concepts in Deep Learning:</strong></p>
+            <ul>
+                <li> <strong>Neural Networks:</strong> A neural network is composed of layers of nodes (neurons), where each node connects to other nodes through weighted edges. These connections allow the network to learn from input data and make predictions.</li>
+                <li> <strong>Backpropagation:</strong> A technique used to optimize neural networks by minimizing the error between predicted and actual outputs. It works by calculating gradients and updating the weights of the network during training.</li>
+                <li> <strong>Activation Functions:</strong> These functions (e.g., ReLU, Sigmoid, Tanh) decide whether a neuron should be activated based on the input data and model's current state.</li>
+                <li> <strong>Convolutional Neural Networks (CNNs):</strong> Used for image-related tasks, CNNs automatically learn spatial hierarchies of features, making them highly effective in object recognition, image classification, and computer vision tasks.</li>
+                <li> <strong>Recurrent Neural Networks (RNNs):</strong> RNNs are designed for sequential data, such as time-series or natural language, where the output from previous steps is fed as input to the current step. They're used in tasks like speech recognition, language translation, and predictive modeling.</li>
+            </ul>
+
+            <p><strong>Real-World Applications of Deep Learning:</strong></p>
+            <ul>
+                <li> <strong>Computer Vision:</strong> Deep learning models, especially CNNs, are widely used for image recognition, object detection, and facial recognition in applications such as self-driving cars, healthcare imaging, and security systems.</li>
+                <li> <strong>Natural Language Processing (NLP):</strong> RNNs and transformers like BERT and GPT are employed in chatbots, sentiment analysis, language translation, and voice assistants.</li>
+                <li> <strong>Speech Recognition:</strong> Deep learning powers speech-to-text systems used in virtual assistants (e.g., Siri, Alexa) and transcription services.</li>
+                <li> <strong>Autonomous Systems:</strong> Deep learning is used in self-driving cars, robotics, and drones for decision-making and navigation based on real-time data.</li>
+            </ul>
+
+            <p><strong>Why Deep Learning?</strong> Deep learning models excel in tasks where traditional machine learning methods struggle, especially when there is a large amount of data. These models can automatically extract high-level features from raw data, such as images or text, without needing manual feature engineering.</p>
+
+            <p><strong>Learn more about Deep Learning from this video:</strong></p>
+            <div class="ratio ratio-16x9">
+                <iframe src="https://www.youtube.com/embed/aircAruvv8E" 
+                        title="Deep Learning Tutorial | Neural Networks, CNN, RNN & More" 
+                        allowfullscreen></iframe>
+            </div>
+        </div>
+    `,
+    },
+  ];
+
+  function showTopic(index) {
+    const topic = topics[index];
+    const topicContent = ` 
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+    document.getElementById("topicContent").innerHTML = topicContent;
+
+    // Highlight active topic
+    const links = document.querySelectorAll("#topicList .nav-link");
+    links.forEach((link) => link.classList.remove("active"));
+    links[index].classList.add("active");
+
+    // Show start quiz button only after last topic
+    document.getElementById("startQuizBtn").style.display =
+      index === topics.length - 1 ? "block" : "none";
+    document.getElementById("quizSection").style.display = "none"; // Hide quiz if navigating back
+  }
+
+  var quizModalInstance = null;
+
+  function startQuiz() {
+    document.getElementById("startQuizBtn").style.display = "none"; // Hide the start button
+
+    // Get or create the modal instance
+    if (!quizModalInstance) {
+      quizModalInstance = new bootstrap.Modal(
+        document.getElementById("quizModal")
+      );
+    }
+
+    // Reset modal content before showing (optional, good practice)
+    document.getElementById("quizQuestionsContainer").innerHTML =
+      "<p>Loading questions...</p>";
+    document.getElementById("quizModalFooter").style.display = "none";
+    document.getElementById("quizResultText").textContent = "";
+    document.getElementById("modalNextLink").style.display = "none";
+
+    // Clear previous form state if re-taking (important!)
+    document.getElementById("quizForm").reset();
+    // Manually clear radio buttons just in case reset() isn't enough
+    document
+      .querySelectorAll('#quizForm input[type="radio"]')
+      .forEach((radio) => (radio.checked = false));
+
+    // Load the quiz questions into the modal body *now*
+    loadQuiz();
+
+    // Show the modal
+    quizModalInstance.show();
+  }
+
+  const questions = [
+    {
+      question: "Which method is used for normalizing data?",
+      options: [
+        "Min-Max Scaling",
+        "One-Hot Encoding",
+        "Label Encoding",
+        "None of the above",
+      ],
+      correct: "Min-Max Scaling",
+    },
+    {
+      question: "What is feature engineering?",
+      options: [
+        "Cleaning data",
+        "Creating new features from raw data",
+        "Training machine learning models",
+        "None of the above",
+      ],
+      correct: "Creating new features from raw data",
+    },
+    {
+      question: "Which algorithm is used for classification?",
+      options: [
+        "K-means",
+        "Random Forest",
+        "Principal Component Analysis",
+        "None of the above",
+      ],
+      correct: "Random Forest",
+    },
+    {
+      question: "What is the purpose of cross-validation?",
+      options: [
+        "To avoid overfitting",
+        "To find the best hyperparameters",
+        "To test the model on unseen data",
+        "All of the above",
+      ],
+      correct: "All of the above",
+    },
+    {
+      question: "Which of the following is a deep learning model?",
+      options: [
+        "Decision Trees",
+        "Linear Regression",
+        "Convolutional Neural Networks",
+        "Logistic Regression",
+      ],
+      correct: "Convolutional Neural Networks",
+    },
+    {
+      question: "What is one-hot encoding used for?",
+      options: [
+        "Handling missing values",
+        "Transforming categorical variables into binary",
+        "Data normalization",
+        "None of the above",
+      ],
+      correct: "Transforming categorical variables into binary",
+    },
+    {
+      question: "Which of the following is a hyperparameter tuning technique?",
+      options: ["Grid Search", "PCA", "K-means", "None of the above"],
+      correct: "Grid Search",
+    },
+    {
+      question: "What does PCA stand for?",
+      options: [
+        "Principal Component Analysis",
+        "Process Component Analysis",
+        "Preprocessing Component Algorithm",
+        "None of the above",
+      ],
+      correct: "Principal Component Analysis",
+    },
+    {
+      question:
+        "Which of the following is a method for evaluating model performance?",
+      options: ["Confusion Matrix", "Accuracy", "F1 Score", "All of the above"],
+      correct: "All of the above",
+    },
+    {
+      question:
+        "Which machine learning algorithm is used for regression tasks?",
+      options: [
+        "Logistic Regression",
+        "Support Vector Machine",
+        "Linear Regression",
+        "K-means",
+      ],
+      correct: "Linear Regression",
+    },
+  ];
+
+  function loadQuiz() {
+    const quizDiv = document.getElementById("quizQuestionsContainer");
+    quizDiv.innerHTML = "";
+    questions.forEach((q, index) => {
+      const qDiv = document.createElement("div");
+      qDiv.classList.add("quiz-question", "p-3", "border", "rounded");
+      qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                <div class="quiz-options">
+                    ${q.options
+                      .map(
+                        (opt, i) => ` 
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                            <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                </div>
+            `;
+      quizDiv.appendChild(qDiv);
+    });
+  }
+
+  document.getElementById("quizForm").onsubmit = function (event) {
+    event.preventDefault();
+    let score = 0;
+    questions.forEach((q, i) => {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (selected && selected.value === q.correct) score++;
+    });
+
+    // Send score to the backend using fetch
+    fetch("{% url 'data_science_intermediate_quiz' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ score: score }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        let alertType = "info";
+        let feedbackMsg = "";
+        // Assuming 'questions' array is globally available in this script
+        const totalQuestions = questions.length;
+        const percentage =
+          totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // --- Define Navigation Targets ---
+        let navigationUrl = null;
+        let navigationDelay = 3000; // Delay in milliseconds (3 seconds)
+        let navigationMsg = "";
+
+        if (percentage < 40) {
+          // --- Score is less than 40% ---
+          alertType = "warning";
+          feedbackMsg = "Keep practicing! Let's try this level again.";
+          // Set URL to reload the current beginner quiz
+          navigationUrl = "{% url 'data_science_intermediate_quiz' %}";
+          navigationMsg = " Reloading Intermediate level...";
+        } else {
+          // --- Score is 40% or higher ---
+          alertType = "success";
+          feedbackMsg = "Good job! Moving to the next level.";
+          // Set URL to go to the intermediate quiz
+          navigationUrl = "{% url 'data_science_advanced_quiz' %}";
+          navigationMsg = " Loading next level...";
+        }
+
+        // Append server message if provided (optional)
+        if (data.message) {
+          feedbackMsg += ` ${data.message}`;
+        }
+
+        // --- Create Bootstrap Alert HTML ---
+        const alertHTML = `
+            <div class="alert alert-${alertType} alert-dismissible fade show" role="alert">
+                <strong>Score: ${score}/${totalQuestions}</strong><br> 
+                ${feedbackMsg} 
+                ${navigationUrl ? navigationMsg : ""} 
+            </div>
+        `;
+
+        // --- Display the Alert ---
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // --- Hide the Quiz Form ---
+        document.getElementById("quizForm").style.display = "none";
+
+        // --- Handle Navigation (after delay) ---
+        if (navigationUrl) {
+          setTimeout(function () {
+            window.location.href = navigationUrl;
+          }, navigationDelay);
+        } else {
+          // Optional: Handle cases with no navigation (e.g., after Advanced level)
+          // Maybe show the modal footer close button?
+          // document.getElementById('quizModalFooter').style.display = 'flex';
+          // document.getElementById('closeModalBtn').style.display = 'inline-block';
+        }
+      })
+      .catch((error) => {
+        console.error("Error submitting score:", error);
+        const errorAlertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error submitting score.</strong> Please try again later or contact support.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = errorAlertHTML;
+        document.getElementById("quizForm").style.display = "none";
+      });
+  };
+
+  // Initialize first topic and prepare quiz
+  showTopic(0);
+  loadQuiz();
+</script>
+{% endblock %}

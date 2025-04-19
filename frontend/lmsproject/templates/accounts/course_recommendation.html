@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Recommendation</title>
+</head>
+<body>
+    <h1>Your Recommended Courses</h1>
+
+    <div>
+        <ul>
+            <li><a href="{% url 'java_course' %}"><button>Java</button></a></li>
+            <li><a href="{% url 'python_course' %}"><button>Python</button></a></li>
+            <li><a href="{% url 'cloud_course' %}"><button>Cloud</button></a></li>
+            <li><a href="{% url 'data_science_course' %}"><button>Data Science</button></a></li>
+            <li><a href="{% url 'web_application_course' %}"><button>Web Application</button></a></li>
+        </ul>
+    </div>
+</body>
+</html>

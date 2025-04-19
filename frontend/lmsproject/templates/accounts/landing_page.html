@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LearnFlow Landing Page</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f9fafe;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .hero-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .highlight {
+      color: #6f42c1;
+    }
+    .dashboard-card {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.05);
+      padding: 25px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .progress-bar {
+      background: linear-gradient(to right, #6f42c1, #0d6efd);
+    }
+    .badge {
+      font-size: 0.75rem;
+    }
+    .btn-waitlist {
+      background-color: #0d6efd;
+      color: white;
+    }
+    .btn-waitlist:hover {
+      background-color: #0b5ed7;
+    }
+    .footer-note {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+    .feature-card {
+      border-radius: 12px;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .testimonial-section {
+      padding: 60px 20px;
+    }
+    .testimonial-title {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .testimonial-subtitle {
+      color: #6c757d;
+      margin-bottom: 40px;
+    }
+    .testimonial-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+      transition: 0.3s ease-in-out;
+    }
+    .testimonial-card:hover {
+      transform: translateY(-5px);
+    }
+    .testimonial-stars {
+      color: #f8c102;
+      margin-bottom: 15px;
+    }
+    .testimonial-text {
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    .testimonial-name {
+      font-weight: bold;
+      margin-bottom: 0;
+    }
+    .testimonial-role {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    .avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      background-color: #e0e0e0;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    .carousel-controls {
+      margin-top: 30px;
+    }
+    .footer {
+      background-color: #1f1f1f;
+      color: #ffffff;
+      padding: 60px 0 20px;
+    }
+    .footer a {
+      color: #cccccc;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+    .footer .footer-bottom {
+      border-top: 1px solid #444;
+      margin-top: 30px;
+      padding-top: 20px;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm py-3">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="#"><span class="text-primary">L</span>earnFlow</a>
+    <div class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav me-3">
+        <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">How it Works</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Testimonials</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Pricing</a></li>
+      </ul>
+      <a href="{% url 'signup' %}" class="btn btn-waitlist me-2">SignUp</a>
+      <a href="{% url 'login' %}" class="btn btn-outline-secondary">Log In</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h1 class="display-5 fw-bold">Personalized Learning,<br><span class="highlight">Reimagined</span></h1>
+        <p class="lead text-muted mt-3">
+          LearnFlow adapts to your unique learning style, schedule, and preferences to create the perfect educational journey tailored just for you.
+        </p>
+        <div class="mt-4">
+          <a href="{% url 'signup' %}" class="btn btn-waitlist btn-lg me-2">SignUp</a>
+          <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg">Log In</a>
+        </div>
+        <div class="mt-3 footer-note">
+          <span>🔒 No credit card required · 🛡️ Your data is always protected</span>
+        </div>
+      </div>
+
+      <div class="col-lg-6 d-flex justify-content-center">
+        <div class="dashboard-card">
+          <h6 class="fw-bold">LearnFlow Dashboard</h6>
+          <p class="text-muted small mb-3">Preview of your personalized experience</p>
+
+          <p class="mb-1 fw-semibold">Today's Learning Path <span class="float-end text-success">87% complete</span></p>
+          <div class="progress mb-3" style="height: 10px;">
+            <div class="progress-bar" role="progressbar" style="width: 87%;"></div>
+          </div>
+
+          <div class="d-flex justify-content-between border p-2 rounded mb-3">
+            <span>📹 Video Lesson</span>
+            <span class="text-muted">15 min</span>
+          </div>
+          <div class="d-flex justify-content-between border p-2 rounded mb-3">
+            <span>📝 Quiz</span>
+            <span class="text-muted">5 min</span>
+          </div>
+
+          <p class="fw-semibold mb-1">Your Learning Style</p>
+          <div class="mb-3">
+            <span class="badge bg-primary me-1">Visual</span>
+            <span class="badge bg-info text-dark me-1">Interactive</span>
+            <span class="badge bg-warning text-dark">Short-Sessions</span>
+          </div>
+
+          <p class="fw-semibold mb-1">📌 Smart Recommendation</p>
+          <p class="text-muted small">Based on your progress, we recommend focusing on <strong>"Advanced Data Structures"</strong> next.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="py-5 bg-light">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-3">Everything you need for a personalized learning experience</h2>
+    <p class="text-muted mb-5">Our platform adapts to how you learn best, creating a custom experience that helps you reach your learning goals faster.</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">🧠</div>
+          <h6 class="fw-bold">Learning Style Detection</h6>
+          <p class="text-muted small">We analyze how you interact with content to determine whether you're a visual, auditory, or kinesthetic learner.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">📅</div>
+          <h6 class="fw-bold">Schedule Optimization</h6>
+          <p class="text-muted small">Set your availability and we'll create a learning schedule that fits your life, not the other way around.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">📈</div>
+          <h6 class="fw-bold">Progress Analytics</h6>
+          <p class="text-muted small">Detailed insights into your learning journey with recommendations to improve your knowledge retention.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">🧩</div>
+          <h6 class="fw-bold">Adaptive Content</h6>
+          <p class="text-muted small">Content dynamically adjusts in difficulty based on your performance and comprehension.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">👥</div>
+          <h6 class="fw-bold">Community Learning</h6>
+          <p class="text-muted small">Connect with others on similar learning paths to share insights, form study groups, and stay motivated.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card h-100">
+          <div class="feature-icon">🔔</div>
+          <h6 class="fw-bold">Smart Reminders</h6>
+          <p class="text-muted small">Intelligent notifications that account for your peak productivity hours and current progress.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonial-section text-center">
+  <div class="container">
+    <p class="text-uppercase text-muted mb-2">Testimonials</p>
+    <h2 class="testimonial-title">What our early users are saying</h2>
+    <p class="testimonial-subtitle">People who have been given early access to LearnFlow are already seeing amazing results.</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"I've tried countless online learning platforms, but LearnFlow is the first one that actually adapts to how I learn. I'm retaining information better and enjoying the process."</p>
+          <div>
+            <span class="avatar-placeholder"></span>
+            <span>
+              <p class="testimonial-name mb-0">Sarah Johnson</p>
+              <p class="testimonial-role mb-0">Software Engineer</p>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"As a busy professional, finding time to learn new skills was always a challenge. LearnFlow's schedule optimization has made it so much easier to fit learning into my day."</p>
+          <div>
+            <span class="avatar-placeholder"></span>
+            <span>
+              <p class="testimonial-name mb-0">Michael Chen</p>
+              <p class="testimonial-role mb-0">Marketing Director</p>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The way LearnFlow adjusted content difficulty as I progressed kept me challenged without feeling overwhelmed. I mastered Python in half the time I expected."</p>
+          <div>
+            <span class="avatar-placeholder"></span>
+            <span>
+              <p class="testimonial-name mb-0">Alex Rodriguez</p>
+              <p class="testimonial-role mb-0">Data Analyst</p>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-controls d-flex justify-content-center mt-4">
+      <button class="btn btn-outline-secondary me-2">&larr;</button>
+      <button class="btn btn-outline-secondary">&rarr;</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>LearnFlow</h5>
+        <p class="small">Personalized learning made simple and effective. Explore your potential with AI-driven education.</p>
+      </div>
+      <div class="col-md-2 mb-4">
+        <h6>Product</h6>
+        <ul class="list-unstyled small">
+          <li><a href="#">Features</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Waitlist</a></li>
+          <li><a href="#">Log in</a></li>
+        </ul>
+      </div>
+      <div class="col-md-2 mb-4">
+        <h6>Company</h6>
+        <ul class="list-unstyled small">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h6>Get in Touch</h6>
+        <p class="small">Email: support@learnflow.com<br>Phone: +1 234 567 8901</p>
+      </div>
+    </div>
+    <div class="footer-bottom text-center">
+      &copy; 2025 LearnFlow. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

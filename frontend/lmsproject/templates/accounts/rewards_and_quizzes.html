@@ -1,0 +1,71 @@
+{% extends 'accounts/base_dashboard.html' %}
+
+{% block content %}
+<style>
+    .fs-5 {
+        font-size: 1.25rem;
+    }
+</style>
+<div class="container mt-5">
+    <div class="row">
+        <!-- Quizzes Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white text-center">
+                    <h4 class="card-title">Quizzes</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary">Quizzes Attended</h5>
+                    <ul class="list-group">
+                        {% for quiz in attended_quizzes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>{{ quiz.level }}</strong>
+                                <span class="badge badge-success">{{ quiz.level }}</span>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">No quizzes attended yet.</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <h5 class="text-warning mt-4">Pending Quizzes</h5>
+                    <ul class="list-group">
+                        {% for quiz in pending_quizzes %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <strong>{{ quiz.level }}</strong>
+                                <span class="badge badge-danger">{{ quiz.level }}</span>
+                            </li>
+                        {% empty %}
+                            <li class="list-group-item">No pending quizzes.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rewards Section -->
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-warning text-white text-center">
+                <h4 class="card-title">Stars Earned</h4>
+            </div>
+            <div class="card-body text-center">
+                {% if total_stars > 0 %}
+                    <div class="fs-2 text-warning">
+                        {% if total_stars >= 1 %}
+                            ⭐
+                        {% endif %}
+                        {% if total_stars >= 2 %}
+                            ⭐
+                        {% endif %}
+                        {% if total_stars >= 3 %}
+                            ⭐
+                        {% endif %}
+                    </div>
+                    <p class="mt-2 text-muted">{{ total_stars }} star{{ total_stars|pluralize }} earned</p>
+                {% else %}
+                    <p class="text-muted mb-0">No stars earned yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{% extends 'accounts/base_dashboard.html' %} {% block content %}
+<head>
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <style>
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-top: 30px;
+    }
+
+    .recommendation-container {
+      background-color: #fff;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      max-width: 700px;
+      margin: 30px auto;
+      border-radius: 8px;
+    }
+
+    #selected_courses ul {
+      padding-left: 20px;
+      list-style-type: none;
+    }
+
+    #selected_courses li {
+      font-size: 16px;
+      margin: 5px 0;
+    }
+
+    .section-title {
+      margin-top: 30px;
+      font-size: 18px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<h2>Your Course</h2>
+
+<div class="recommendation-container">
+  <form method="POST" action="{% url 'course_recommendation' %}">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <input
+        type="number"
+        name="age"
+        class="form-control"
+        placeholder="Age"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <input
+        type="text"
+        name="degree"
+        class="form-control"
+        placeholder="Degree"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <input
+        type="text"
+        name="gpa"
+        class="form-control"
+        placeholder="GPA"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <input
+        type="text"
+        name="time"
+        class="form-control"
+        placeholder="Time Spent Daily (hrs)"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <select name="module" class="form-select" required>
+        <option disabled selected>Learning Module Preference</option>
+        <option value="Fixed Roadmap">Fixed Roadmap</option>
+        <option value="Flexible Roadmap">Flexible Roadmap</option>
+      </select>
+    </div>
+
+    <div class="mb-5">
+      <p class="fw-bold mb-2">Interested Courses:</p>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="cloud"
+              name="course"
+              value="Cloud"
+            />
+            <label class="form-check-label" for="cloud">Cloud computing</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="data_science"
+              name="course"
+              value="Data Science"
+            />
+            <label class="form-check-label" for="data_science"
+              >Data Science</label
+            >
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="web_application"
+              name="course"
+              value="Web Application"
+            />
+            <label class="form-check-label" for="web_application"
+              >Web Application</label
+            >
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="python"
+              name="course"
+              value="Python"
+            />
+            <label class="form-check-label" for="python">Python</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="java"
+              name="course"
+              value="Java"
+            />
+            <label class="form-check-label" for="java">Java</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-check mb-3">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="no_option"
+        name="no_option"
+        onclick="toggleCourses(this)"
+      />
+      <label class="form-check-label" for="no_option"
+        >No Option (Select to Show All Recommendations)</label
+      >
+    </div>
+
+    <div id="selected_courses" class="mb-3"></div>
+
+    <button type="submit" class="btn btn-primary w-100">
+      Get Recommendation
+    </button>
+  </form>
+
+  {% if recommended_domains %}
+  <div class="section-title mt-4">
+    <h2>Recommended Domains:</h2>
+    <ul>
+      {% for domain in recommended_domains %}
+      <li><strong>{{ domain }}</strong></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %} {% if error %}
+  <div class="section-title text-danger">
+    <strong>Error:</strong> {{ error }}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function toggleCourses(checkbox) {
+    const selectedCoursesDiv = document.getElementById("selected_courses");
+    if (checkbox.checked) {
+      selectedCoursesDiv.style.display = "none";
+    } else {
+      selectedCoursesDiv.style.display = "block";
+    }
+  }
+
+  function updateSelectedCourses() {
+    const selectedCoursesDiv = document.getElementById("selected_courses");
+    const checkboxes = document.querySelectorAll(
+      "input[name='course']:checked"
+    );
+    selectedCoursesDiv.innerHTML = "";
+
+    if (checkboxes.length === 0) {
+      selectedCoursesDiv.innerHTML = "<p>No courses selected.</p>";
+    } else {
+      const ul = document.createElement("ul");
+      checkboxes.forEach((checkbox) => {
+        const li = document.createElement("li");
+        li.textContent = checkbox.value;
+        ul.appendChild(li);
+      });
+      selectedCoursesDiv.appendChild(ul);
+    }
+  }
+
+  document.querySelectorAll("input[name='course']").forEach((checkbox) => {
+    checkbox.addEventListener("change", updateSelectedCourses);
+  });
+</script>
+{% endblock %}

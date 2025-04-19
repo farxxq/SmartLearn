@@ -1,0 +1,695 @@
+{% extends 'accounts/base_dashboard.html' %} {% block content %}
+
+<!-- Bootstrap Styles -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom Styles -->
+
+<style>
+  /* Custom Styles */
+  .sidebar {
+    background-color: #0d6efd;
+    color: white;
+    height: 100vh;
+    padding-top: 20px;
+  }
+
+  .sidebar h5 {
+    color: white;
+    font-size: 20px;
+  }
+
+  .sidebar .nav-item .nav-link {
+    color: white;
+    padding: 12px;
+  }
+
+  .sidebar .nav-item .nav-link:hover {
+    background-color: #0056b3;
+  }
+
+  .active {
+    background-color: #004085;
+  }
+
+  .card {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-check-label {
+    font-weight: 500;
+  }
+
+  .quiz-container {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .quiz-container h3 {
+    font-size: 24px;
+  }
+
+  .btn-custom {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-custom:hover {
+    background-color: #218838;
+  }
+
+  .btn-outline-custom {
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
+  }
+
+  .btn-outline-custom:hover {
+    background-color: #0d6efd;
+    color: black;
+  }
+
+  .quiz-question {
+    margin-bottom: 20px;
+  }
+
+  .quiz-options {
+    margin-left: 20px;
+  }
+
+  .form-check-input:checked {
+    background-color: #0d6efd;
+  }
+  body {
+    background-color: #f4f9fd; /* Soft blue background */
+  }
+
+  #topicContent {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  }
+
+  #topicContent ul {
+    list-style-type: none;
+    padding-left: 1rem;
+  }
+
+  #topicContent ul li::before {
+    content: "✔️ ";
+    margin-right: 0.5rem;
+  }
+
+  #topicContent code {
+    background-color: #eef3f7;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+  }
+</style>
+
+<div class="container-fluid">
+  <div class="row mt-4">
+    <!-- Sidebar -->
+    <nav
+      class="col-md-3 col-lg-2 d-md-block bg-primary sidebar collapse border-end"
+    >
+      <div class="position-sticky pt-3">
+        <h5 class="text-center">Advanced Data Science Topics</h5>
+        <ul class="nav flex-column" id="topicList">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="showTopic(0)"
+              >Ensemble Learning Techniques</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(1)"
+              >Dimensionality Reduction Methods</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(2)"
+              >Model Deployment Strategies</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(3)"
+              >Natural Language Processing (NLP)</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showTopic(4)"
+              >Reinforcement Learning</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div id="topicContent" class="mt-4"></div>
+
+      <!-- Start Quiz Button -->
+      <div class="text-end mt-3" id="startQuizBtn" style="display: none">
+        <button class="btn btn-primary" onclick="startQuiz()">
+          Start Quiz
+        </button>
+      </div>
+
+      <!-- Quiz Section -->
+      <div
+        class="modal fade"
+        id="quizModal"
+        tabindex="-1"
+        aria-labelledby="quizModalLabel"
+        aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+      >
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="quizModalLabel">
+                Web Development Beginner Quiz
+              </h5>
+            </div>
+            <div class="modal-body" id="quizModalBody">
+              <div id="quizAlertPlaceholder"></div>
+              <form id="quizForm">
+                <div id="quizQuestionsContainer" class="mt-3">
+                  <p>Loading questions...</p>
+                </div>
+                <button type="submit" class="btn btn-success mt-4">
+                  Submit Quiz
+                </button>
+              </form>
+            </div>
+            <div
+              class="modal-footer"
+              id="quizModalFooter"
+              style="display: none"
+            >
+              <p id="quizResultText" class="me-auto"></p>
+              <button
+                type="button"
+                id="closeModalBtn"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <a
+                href="#"
+                id="modalNextLink"
+                class="btn btn-primary"
+                style="display: none"
+                >Next Step</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Back Button -->
+<div class="text-center mt-5">
+  <a href="{% url 'student_dashboard' %}" class="btn btn-outline-primary"
+    >← Back to Dashboard</a
+  >
+</div>
+
+<script>
+  const topics = [
+    {
+      title: "Ensemble Learning Techniques",
+      content: `
+            <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                <h4 class="text-primary mb-3"> Ensemble Learning Techniques</h4>
+                <p><strong>Ensemble Learning</strong> refers to techniques that combine multiple models to produce a stronger overall model. By leveraging the diversity of different models, ensemble methods can reduce errors and improve the accuracy of predictions. The key idea is that a group of weak learners (models) can work together to make a strong learner.</p>
+
+                <p><strong>Key Types of Ensemble Learning Techniques:</strong></p>
+                <ul>
+                    <li> <strong>Bagging (Bootstrap Aggregating):</strong> Involves training multiple instances of the same model on different subsets of the training data, which are randomly sampled with replacement. The final prediction is made by averaging (for regression) or voting (for classification) the predictions of all models. This reduces variance and prevents overfitting. <strong>Popular Algorithm:</strong> Random Forest.</li>
+                    <li> <strong>Boosting:</strong> Sequentially trains models where each model tries to correct the errors made by the previous ones. The idea is to give more weight to the misclassified instances from previous models, improving performance iteratively. Boosting reduces bias and variance. <strong>Popular Algorithms:</strong> Gradient Boosting, AdaBoost, XGBoost.</li>
+                    <li> <strong>Stacking (Stacked Generalization):</strong> Combines multiple different models (base models) and uses another model (meta-model) to combine their predictions. The base models are trained independently, and the meta-model learns how to best combine their predictions to improve overall accuracy.</li>
+                </ul>
+
+                <p><strong>Benefits of Ensemble Learning:</strong></p>
+                <ul>
+                    <li> <strong>Improves Accuracy:</strong> Combining multiple models reduces the chances of errors and improves predictive accuracy.</li>
+                    <li> <strong>Reduces Overfitting:</strong> Methods like bagging help in reducing the variance of individual models and reduce overfitting to the training data.</li>
+                    <li> <strong>Handles Bias and Variance:</strong> Boosting reduces bias by focusing on difficult-to-predict instances, while bagging reduces variance by averaging multiple models.</li>
+                </ul>
+
+                <p><strong>Real-World Applications of Ensemble Learning:</strong></p>
+                <ul>
+                    <li> <strong>Finance:</strong> Used in credit scoring, fraud detection, and stock price prediction.</li>
+                    <li> <strong>Healthcare:</strong> For disease prediction, such as cancer diagnosis, by combining various models trained on different medical data.</li>
+                    <li> <strong>Climate Modeling:</strong> Enhancing the prediction of weather patterns and climate change impacts by combining different models.</li>
+                    <li> <strong>Gaming:</strong> Ensemble learning is used in gaming AI to improve strategic decisions and predict outcomes.</li>
+                </ul>
+
+                <p><strong>Learn more about Ensemble Learning from this video:</strong></p>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/2D9wZYmDREo" 
+                            title="Ensemble Learning in Machine Learning | Bagging, Boosting, Stacking" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        `,
+    },
+
+    {
+      title: "Dimensionality Reduction Methods",
+      content: `
+            <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                <h4 class="text-primary mb-3"> Dimensionality Reduction Methods</h4>
+                <p><strong>Dimensionality reduction</strong> refers to the process of reducing the number of input variables (features) in a dataset. By transforming data into a lower-dimensional form, these techniques help improve the performance and interpretability of machine learning models. They are particularly useful when dealing with high-dimensional data that may cause issues like overfitting and increased computational cost.</p>
+
+                <p><strong>Popular Dimensionality Reduction Techniques:</strong></p>
+                <ul>
+                    <li> <strong>Principal Component Analysis (PCA):</strong> A statistical technique that transforms data into a set of orthogonal components that capture the maximum variance. PCA reduces dimensionality by retaining the most important components while discarding the ones that contribute less to the overall variance in the data.</li>
+                    <li> <strong>t-Distributed Stochastic Neighbor Embedding (t-SNE):</strong> A non-linear dimensionality reduction technique commonly used for visualizing high-dimensional data in two or three dimensions. t-SNE focuses on preserving the local structure of the data, making it ideal for exploring complex relationships in datasets.</li>
+                    <li> <strong>Linear Discriminant Analysis (LDA):</strong> Similar to PCA but supervised. LDA tries to find the feature subspace that maximizes the separation between classes. It's useful for classification problems and helps improve the performance of classifiers by reducing the number of dimensions.</li>
+                    <li> <strong>Autoencoders:</strong> A type of neural network used for unsupervised dimensionality reduction. Autoencoders learn to encode the input data into a lower-dimensional space and then decode it back to its original form, minimizing reconstruction error.</li>
+                </ul>
+
+                <p><strong>Benefits of Dimensionality Reduction:</strong></p>
+                <ul>
+                    <li> <strong>Improves Model Performance:</strong> Reducing the number of features can lead to better model performance, especially when dealing with noisy or redundant features.</li>
+                    <li> <strong>Reduces Overfitting:</strong> By eliminating irrelevant features, dimensionality reduction helps in mitigating the risk of overfitting, improving the model’s generalization capability.</li>
+                    <li> <strong>Enhances Visualization:</strong> Reducing dimensions to 2D or 3D helps in visualizing the data and understanding patterns, especially for exploratory data analysis.</li>
+                    <li> <strong>Improves Computational Efficiency:</strong> Lower-dimensional data means less computational power and memory are required for processing, resulting in faster training times.</li>
+                </ul>
+
+                <p><strong>Real-World Applications of Dimensionality Reduction:</strong></p>
+                <ul>
+                    <li> <strong>Bioinformatics:</strong> Analyzing gene expression data and reducing the number of features to focus on the most significant genes.</li>
+                    <li> <strong>Finance:</strong> Reducing the complexity of financial models by extracting the most significant factors affecting the market.</li>
+                    <li> <strong>Computer Vision:</strong> Reducing the number of features in image data for faster processing and better feature extraction.</li>
+                    <li> <strong>Natural Language Processing (NLP):</strong> Reducing dimensionality in text data to improve the performance of language models and text classification.</li>
+                </ul>
+
+                <p><strong>Learn more about Dimensionality Reduction from this video:</strong></p>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/wYkQbhXkC1I" 
+                            title="Dimensionality Reduction - PCA, t-SNE, LDA, Autoencoders" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        `,
+    },
+
+    {
+      title: "Model Deployment Strategies",
+      content: `
+                <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                    <h4 class="text-primary mb-3"> Model Deployment Strategies</h4>
+                    <p><strong>Model deployment</strong> refers to the process of integrating a machine learning model into a production environment so that it can be used by end-users or other systems for making predictions. Effective deployment ensures that models perform efficiently, remain up-to-date, and are scalable. Below are some key strategies for deploying machine learning models.</p>
+
+                    <p><strong>Common Model Deployment Strategies:</strong></p>
+                    <ul>
+                        <li> <strong>Containers:</strong> Containers encapsulate the model and its dependencies, ensuring that it runs consistently across different environments. Docker is the most popular tool for containerization. It helps create lightweight, reproducible, and scalable deployments.</li>
+                        <li> <strong>Model Versioning:</strong> Keeping track of different versions of a model is essential for managing updates and ensuring reproducibility. Versioning tools like DVC (Data Version Control) or MLflow can be used to track both model and dataset versions.</li>
+                        <li> <strong>Cloud Platforms:</strong> Cloud services such as AWS, Google Cloud, and Azure provide platforms specifically designed for deploying machine learning models. They offer scalability, managed services, and easy integration with other tools, making it easier to deploy models in production.</li>
+                        <li> <strong>APIs (Application Programming Interfaces):</strong> Exposing a model as an API allows users and other systems to interact with it by sending data and receiving predictions. RESTful APIs using Flask or FastAPI, and GraphQL APIs, are commonly used for model deployment.</li>
+                    </ul>
+
+                    <p><strong>Popular Tools for Model Deployment:</strong></p>
+                    <ul>
+                        <li> <strong>Docker:</strong> A containerization platform that allows you to package the model, its environment, and dependencies into a single container. It ensures portability and consistency across environments.</li>
+                        <li> <strong>Kubernetes:</strong> A container orchestration platform that automates the deployment, scaling, and management of containerized applications. It is used to manage large-scale model deployments in production.</li>
+                        <li> <strong>AWS (Amazon Web Services):</strong> AWS offers managed services like SageMaker for training and deploying models. It allows for easy scaling and provides integration with other AWS services like Lambda for API creation.</li>
+                        <li> <strong>Google Cloud:</strong> Google Cloud AI Platform is a powerful service that allows you to deploy machine learning models. It integrates seamlessly with other Google Cloud services for storage, scaling, and serving models efficiently.</li>
+                    </ul>
+
+                    <p><strong>Benefits of Effective Model Deployment:</strong></p>
+                    <ul>
+                        <li> <strong>Scalability:</strong> Cloud platforms and containers allow you to scale your deployment as needed, ensuring that the model can handle varying levels of traffic.</li>
+                        <li> <strong>Easy Updates:</strong> With versioning and containerization, updating models becomes seamless and doesn't require significant downtime.</li>
+                        <li> <strong>Global Access:</strong> Deploying models on cloud platforms or as APIs ensures that users and systems across the globe can access the model anytime and anywhere.</li>
+                        <li> <strong>Security:</strong> Cloud platforms and APIs offer security measures such as encryption, access control, and monitoring to ensure safe and secure model usage.</li>
+                    </ul>
+
+                    <p><strong>Learn more about Model Deployment from this video:</strong></p>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.youtube.com/embed/Bb9cnFRA1fg" 
+                                title="Model Deployment in Machine Learning | How to Deploy ML Models" 
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+            `,
+    },
+
+    {
+      title: "Natural Language Processing (NLP)",
+      content: `
+            <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                <h4 class="text-primary mb-3"> Natural Language Processing (NLP)</h4>
+                <p><strong>Natural Language Processing (NLP)</strong> is a subfield of artificial intelligence (AI) that focuses on enabling machines to understand, interpret, and generate human language. NLP encompasses a wide range of tasks aimed at processing text and speech data.</p>
+
+                <p><strong>Key Techniques in NLP:</strong></p>
+                <ul>
+                    <li> <strong>Text Preprocessing:</strong> This involves cleaning and preparing text for further analysis. Steps include removing stopwords, stemming, lemmatization, and tokenization. These techniques help break text into manageable chunks and remove irrelevant information.</li>
+                    <li> <strong>Sentiment Analysis:</strong> Sentiment analysis aims to determine the sentiment expressed in a piece of text (positive, negative, or neutral). It's commonly used in social media monitoring, customer feedback analysis, and opinion mining.</li>
+                    <li> <strong>Named Entity Recognition (NER):</strong> NER is used to identify and classify entities (such as names of people, organizations, locations, dates, etc.) in a text. This technique is crucial for tasks like information extraction and summarization.</li>
+                    <li> <strong>Machine Translation:</strong> Machine translation aims to automatically translate text from one language to another. Deep learning models, particularly sequence-to-sequence models and transformers, have revolutionized the field of translation, producing more accurate and fluent translations.</li>
+                </ul>
+
+                <p><strong>Applications of NLP:</strong></p>
+                <ul>
+                    <li> <strong>Chatbots and Virtual Assistants:</strong> NLP powers conversational AI systems like chatbots and virtual assistants (e.g., Siri, Alexa, Google Assistant) that can understand and respond to user queries.</li>
+                    <li> <strong>Text Classification:</strong> Classifying text into predefined categories, such as spam detection, topic categorization, or sentiment analysis.</li>
+                    <li> <strong>Information Retrieval:</strong> NLP is essential in search engines for retrieving the most relevant documents or web pages based on a user's query.</li>
+                    <li> <strong>Text Summarization:</strong> Summarizing long pieces of text into concise summaries, which is especially useful in news aggregation, document processing, and research.</li>
+                </ul>
+
+                <p><strong>Popular NLP Models:</strong></p>
+                <ul>
+                    <li> <strong>RNNs (Recurrent Neural Networks):</strong> Used for processing sequential data like text. Long Short-Term Memory (LSTM) networks, a type of RNN, are widely used in NLP tasks.</li>
+                    <li> <strong>Transformers:</strong> Modern transformer models like BERT, GPT, and T5 have significantly improved NLP tasks by capturing context over long sequences of text. These models use attention mechanisms for better performance.</li>
+                </ul>
+
+                <p><strong>Learn more about NLP from this video:</strong></p>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/0o8n23yLkQ4" 
+                            title="Introduction to Natural Language Processing | NLP for Beginners" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        `,
+    },
+    {
+      title: "Reinforcement Learning",
+      content: `
+            <div class="p-3 bg-light border rounded shadow-sm" id="topicContent">
+                <h4 class="text-primary mb-3"> Reinforcement Learning</h4>
+                <p><strong>Reinforcement Learning (RL)</strong> is a type of machine learning where an agent learns how to make decisions by interacting with its environment. Unlike supervised learning, where the model learns from labeled data, in RL, the agent learns by receiving feedback in the form of rewards or penalties for its actions. The agent aims to maximize the cumulative reward over time.</p>
+
+                <p><strong>Key Concepts in Reinforcement Learning:</strong></p>
+                <ul>
+                    <li> <strong>Agent:</strong> The learner or decision maker who takes actions in the environment.</li>
+                    <li> <strong>Environment:</strong> The surroundings the agent interacts with, where it makes decisions and receives feedback.</li>
+                    <li> <strong>Action:</strong> A decision made by the agent that changes the state of the environment.</li>
+                    <li> <strong>State:</strong> A snapshot of the environment at any given time. It represents the situation in which the agent finds itself.</li>
+                    <li> <strong>Reward:</strong> The feedback the agent receives after taking an action. Positive rewards encourage actions, while negative rewards discourage them.</li>
+                    <li> <strong>Policy:</strong> A strategy or a function that defines the agent's behavior by mapping states to actions.</li>
+                    <li> <strong>Value Function:</strong> A function that estimates how good a particular state or action is in terms of expected future rewards.</li>
+                    <li> <strong>Discount Factor (γ):</strong> Determines the importance of future rewards compared to immediate ones. A high γ values future rewards more.</li>
+                </ul>
+
+                <p><strong>Types of Reinforcement Learning Algorithms:</strong></p>
+                <ul>
+                    <li> <strong>Q-Learning:</strong> A model-free RL algorithm where the agent learns the value of state-action pairs. The goal is to find the optimal action-selection policy using the Q-values.</li>
+                    <li> <strong>Deep Q-Networks (DQN):</strong> Combines Q-learning with deep learning. It uses neural networks to approximate the Q-values, allowing RL to be applied to more complex environments like video games.</li>
+                    <li> <strong>Policy Gradient Methods:</strong> These methods directly optimize the policy by updating it based on the gradient of expected rewards.</li>
+                    <li> <strong>Actor-Critic Methods:</strong> Combines value-based and policy-based methods. The actor updates the policy, and the critic evaluates the actions taken by the actor.</li>
+                </ul>
+
+                <p><strong>Applications of Reinforcement Learning:</strong></p>
+                <ul>
+                    <li> <strong>Game Playing:</strong> RL has been used to train agents to play complex games like chess, Go, and video games (e.g., AlphaGo, Dota 2). These applications demonstrate the power of RL in learning from raw interaction with the environment.</li>
+                    <li> <strong>Autonomous Vehicles:</strong> RL is used to train self-driving cars to make decisions like lane changing, speed control, and obstacle avoidance.</li>
+                    <li> <strong>Robotics:</strong> RL helps robots learn complex tasks like manipulation, grasping objects, or walking by trial and error.</li>
+                    <li> <strong>Recommendation Systems:</strong> RL can be applied to optimize recommendation strategies in areas like e-commerce and entertainment, where the agent learns to suggest products or content based on user interactions.</li>
+                </ul>
+
+                <p><strong>Learn more about Reinforcement Learning from this video:</strong></p>
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/2pWv7GOvuf0" 
+                            title="Reinforcement Learning | Full Course | Machine Learning" 
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+        `,
+    },
+  ];
+
+  function showTopic(index) {
+    const topic = topics[index];
+    const topicContent = ` 
+            <div class="card shadow-sm p-4 mb-4">
+                <h2 class="mb-3">${topic.title}</h2>
+                <p class="mb-0">${topic.content}</p>
+            </div>
+        `;
+    document.getElementById("topicContent").innerHTML = topicContent;
+
+    // Highlight active topic
+    const links = document.querySelectorAll("#topicList .nav-link");
+    links.forEach((link) => link.classList.remove("active"));
+    links[index].classList.add("active");
+
+    // Show start quiz button only after last topic
+    document.getElementById("startQuizBtn").style.display =
+      index === topics.length - 1 ? "block" : "none";
+    document.getElementById("quizSection").style.display = "none"; // Hide quiz if navigating back
+  }
+
+  var quizModalInstance = null;
+
+  function startQuiz() {
+    document.getElementById("startQuizBtn").style.display = "none"; // Hide the start button
+
+    // Get or create the modal instance
+    if (!quizModalInstance) {
+      quizModalInstance = new bootstrap.Modal(
+        document.getElementById("quizModal")
+      );
+    }
+
+    // Reset modal content before showing (optional, good practice)
+    document.getElementById("quizQuestionsContainer").innerHTML =
+      "<p>Loading questions...</p>";
+    document.getElementById("quizModalFooter").style.display = "none";
+    document.getElementById("quizResultText").textContent = "";
+    document.getElementById("modalNextLink").style.display = "none";
+
+    // Clear previous form state if re-taking (important!)
+    document.getElementById("quizForm").reset();
+    // Manually clear radio buttons just in case reset() isn't enough
+    document
+      .querySelectorAll('#quizForm input[type="radio"]')
+      .forEach((radio) => (radio.checked = false));
+
+    // Load the quiz questions into the modal body *now*
+    loadQuiz();
+
+    // Show the modal
+    quizModalInstance.show();
+  }
+
+  const questions = [
+    {
+      question: "Which algorithm is used in Boosting?",
+      options: ["Random Forest", "AdaBoost", "K-means", "DBSCAN"],
+      correct: "AdaBoost",
+    },
+    {
+      question: "What does PCA stand for?",
+      options: [
+        "Principal Component Analysis",
+        "Principal Component Algorithm",
+        "Partial Component Analysis",
+        "None of the above",
+      ],
+      correct: "Principal Component Analysis",
+    },
+    {
+      question: "What is a key feature of Reinforcement Learning?",
+      options: [
+        "Supervised learning",
+        "Unsupervised learning",
+        "Learning from rewards",
+        "Data augmentation",
+      ],
+      correct: "Learning from rewards",
+    },
+    {
+      question:
+        "Which of the following is a dimensionality reduction technique?",
+      options: ["k-NN", "PCA", "Logistic Regression", "Linear Regression"],
+      correct: "PCA",
+    },
+    {
+      question: "What is the purpose of Stacking in ensemble learning?",
+      options: [
+        "Combining different models",
+        "Creating deep neural networks",
+        "Reducing overfitting",
+        "Selecting features",
+      ],
+      correct: "Combining different models",
+    },
+    {
+      question: "Which method is used to process sequential data in NLP?",
+      options: ["LSTM", "K-means", "SVM", "Decision Trees"],
+      correct: "LSTM",
+    },
+    {
+      question: "Which method is commonly used for model deployment?",
+      options: ["Docker", "TensorFlow", "Keras", "PyTorch"],
+      correct: "Docker",
+    },
+    {
+      question: "Which of the following is NOT part of NLP?",
+      options: [
+        "Sentiment Analysis",
+        "Topic Modeling",
+        "Neural Architecture Search",
+        "Named Entity Recognition",
+      ],
+      correct: "Neural Architecture Search",
+    },
+    {
+      question:
+        "Which algorithm is used for Q-Learning in Reinforcement Learning?",
+      options: [
+        "Deep Q-Networks",
+        "Decision Trees",
+        "SVM",
+        "Linear Regression",
+      ],
+      correct: "Deep Q-Networks",
+    },
+    {
+      question: "Which type of model is typically used for sentiment analysis?",
+      options: ["Decision Trees", "Logistic Regression", "Naive Bayes", "SVM"],
+      correct: "Naive Bayes",
+    },
+  ];
+
+  function loadQuiz() {
+    const quizDiv = document.getElementById("quizQuestionsContainer");
+    quizDiv.innerHTML = "";
+    questions.forEach((q, index) => {
+      const qDiv = document.createElement("div");
+      qDiv.classList.add("mb-3", "p-3", "border", "rounded");
+      qDiv.innerHTML = ` 
+                <p><strong>${index + 1}. ${q.question}</strong></p>
+                ${q.options
+                  .map(
+                    (opt, i) => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="q${index}" value="${opt}" id="q${index}_opt${i}">
+                        <label class="form-check-label" for="q${index}_opt${i}">${opt}</label>
+                    </div>
+                `
+                  )
+                  .join("")}`;
+      quizDiv.appendChild(qDiv);
+    });
+  }
+
+  document.getElementById("quizForm").onsubmit = function (event) {
+    event.preventDefault();
+    let score = 0;
+    questions.forEach((q, i) => {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (selected && selected.value === q.correct) score++;
+    });
+
+    fetch("{% url 'data_science_advanced_quiz' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ score: score }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        let alertType = "info";
+        let feedbackMsg = "";
+        // Assuming 'questions' array is globally available in this script
+        const totalQuestions = questions.length;
+        const percentage =
+          totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // --- Define Navigation Targets ---
+        let navigationUrl = null;
+        let navigationDelay = 3000; // Delay in milliseconds (3 seconds)
+        let navigationMsg = "";
+
+        if (percentage < 40) {
+          // --- Score is less than 40% ---
+          alertType = "warning";
+          feedbackMsg = "Keep practicing! Let's try this level again.";
+          // Set URL to reload the current beginner quiz
+          navigationUrl = "{% url 'web_development_advanced_quiz' %}";
+          navigationMsg = " Reloading Advance level...";
+        } else {
+          // --- Score is 40% or higher ---
+          alertType = "success";
+          feedbackMsg = "Good job! Moving to the next level.";
+          // Set URL to go to the intermediate quiz
+          navigationUrl = "{% url 'student_dashboard' %}";
+          navigationMsg = " Completed course...";
+        }
+
+        // Append server message if provided (optional)
+        if (data.message) {
+          feedbackMsg += ` ${data.message}`;
+        }
+
+        // --- Create Bootstrap Alert HTML ---
+        const alertHTML = `
+            <div class="alert alert-${alertType} alert-dismissible fade show" role="alert">
+                <strong>Score: ${score}/${totalQuestions}</strong><br> 
+                ${feedbackMsg} 
+                ${navigationUrl ? navigationMsg : ""} 
+            </div>
+        `;
+
+        // --- Display the Alert ---
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = alertHTML;
+
+        // --- Hide the Quiz Form ---
+        document.getElementById("quizForm").style.display = "none";
+
+        // --- Handle Navigation (after delay) ---
+        if (navigationUrl) {
+          setTimeout(function () {
+            window.location.href = navigationUrl;
+          }, navigationDelay);
+        } else {
+          // Optional: Handle cases with no navigation (e.g., after Advanced level)
+          // Maybe show the modal footer close button?
+          // document.getElementById('quizModalFooter').style.display = 'flex';
+          // document.getElementById('closeModalBtn').style.display = 'inline-block';
+        }
+      })
+      .catch((error) => {
+        console.error("Error submitting score:", error);
+        const errorAlertHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error submitting score.</strong> Please try again later or contact support.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        const alertPlaceholder = document.getElementById(
+          "quizAlertPlaceholder"
+        );
+        alertPlaceholder.innerHTML = errorAlertHTML;
+        document.getElementById("quizForm").style.display = "none";
+      });
+  };
+
+  // Initialize first topic and prepare quiz
+  showTopic(0);
+  loadQuiz();
+</script>
+
+{% endblock %}
