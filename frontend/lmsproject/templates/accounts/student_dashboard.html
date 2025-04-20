@@ -119,8 +119,12 @@
                 </p>
             </div>
         {% endif %}
+
+
     
     </div> {# End main-content-inner #}
+
+    {{ completed_course_info|json_script:"completed-course-data" }}
     {% endblock %}
 
     <!-- Bootstrap JS -->
@@ -128,7 +132,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get completed course info passed from the Django view
-            const completedInfo = {{ completed_course_info | safe | default:'null' }}; 
+            let completedInfo = null; // Default to null
+            const completedDataElement = document.getElementById('completed-course-data');
+
+            if (completedDataElement) {
+                try {
+                    // Parse the JSON string from the script tag
+                    completedInfo = JSON.parse(completedDataElement.textContent);
+                } catch (e) {
+                    console.error("Error parsing completed course data:", e);
+                }
+            }
             const placeholder = document.getElementById('completionMessagePlaceholder');
     
             if (completedInfo && placeholder) {
