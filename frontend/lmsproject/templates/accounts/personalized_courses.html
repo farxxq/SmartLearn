@@ -1,0 +1,120 @@
+{# File: SmartLearnProject/frontend/lmsproject/templates/accounts/personalized_courses.html #}
+
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<head>
+  <style>
+    /* ... Your existing styles ... */
+    .roadmap-container { /* AI Roadmap */
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+    }
+    .roadmap-container h3 { margin-bottom: 15px; }
+    .roadmap-container pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+     .db-topics-container { /* DB Topics */
+        margin-top: 20px;
+     }
+     .alert-dismissible { /* Ensure some padding for the close button */
+        padding-right: 3rem;
+    }
+  </style>
+</head>
+
+<div class="course-container">
+
+  {# Display Django Messages #}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" id="alert-container" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if course %}
+    <h1>{{ course.name }}</h1>
+    <p>{{ course.description }}</p> {# Shows placeholder or AI description #}
+
+    {% if is_enrolled %}
+      <div class="enroll-status enrolled">
+        <strong>Status:</strong> You are enrolled in this course.
+      </div>
+    {% endif %}
+
+    <hr>
+
+    {# Display Generated AI Roadmap #}
+    <div class="roadmap-container">
+        <h3>Personalized Learning Roadmap (AI Generated)</h3>
+        {% if generated_roadmap and "Error" not in generated_roadmap and "not configured" not in generated_roadmap and "AI response was empty" not in generated_roadmap and "could not generate" not in generated_roadmap %}
+            {# Display only if roadmap seems valid #}
+            <pre>{{ generated_roadmap }}</pre>
+        {% else %}
+            {# Show a more user-friendly message if generation failed or wasn't possible #}
+            <div class="alert alert-secondary">
+                {% if generated_roadmap %}
+                    {{ generated_roadmap }} {# Display specific error from view #}
+                {% else %}
+                    Personalized roadmap could not be generated at this time. Please proceed using the standard course structure if available, or try again later.
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+  {% else %}
+    <h1>Error</h1>
+    <p>Could not load course details.</p>
+  {% endif %}
+
+  <hr>
+  <p>
+      <a href="{% url 'student_dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+      <a href="{% url 'flexible_temp' %}" class="btn btn-secondary">Back to Selection</a>
+  </p>
+
+</div>
+    <script>
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Select all alert elements within the container
+            const alerts = document.querySelectorAll('#alert-container .alert');
+    
+            alerts.forEach(function(alert) {
+                // Set a timeout to remove the 'show' class after 3000ms (3 seconds)
+                // Bootstrap's CSS handles the fade-out transition
+                setTimeout(() => {
+                    // Check if Bootstrap's Alert component is available
+                    if (bootstrap && bootstrap.Alert) {
+                         const alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+                         if (alertInstance) {
+                             alertInstance.close(); // Use Bootstrap's close method
+                         } else {
+                             alert.classList.remove('show'); // Fallback if instance creation fails
+                         }
+                    } else {
+                        // Fallback if Bootstrap JS isn't loaded
+                         alert.classList.remove('show');
+                         // Optional: remove the element completely after the transition
+                         setTimeout(() => {
+                             if (alert.parentNode) {
+                                 alert.parentNode.removeChild(alert);
+                             }
+                         }, 150); // Wait for fade transition (default is .15s)
+                    }
+                }, 3000); // 3000 milliseconds = 3 seconds
+            });
+        });
+    </script>
+{% endblock %}

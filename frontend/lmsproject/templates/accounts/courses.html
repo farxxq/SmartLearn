@@ -56,6 +56,9 @@
         name="age"
         class="form-control"
         placeholder="Age"
+        value="18"
+        min = "18"
+        max = "25"
         required
       />
     </div>
@@ -72,31 +75,38 @@
 
     <div class="mb-3">
       <input
-        type="text"
+        type="number"
         name="gpa"
         class="form-control"
         placeholder="GPA"
+        max = "10"
+        min = "4"
         required
       />
     </div>
 
     <div class="mb-3">
       <input
-        type="text"
+        type="number"
         name="time"
         class="form-control"
         placeholder="Time Spent Daily (hrs)"
+        min="1"
         required
       />
     </div>
 
-    <div class="mb-3">
-      <select name="module" class="form-select" required>
-        <option disabled selected>Learning Module Preference</option>
-        <option value="Fixed Roadmap">Fixed Roadmap</option>
-        <option value="Flexible Roadmap">Flexible Roadmap</option>
-      </select>
+    <div class="mb-3"> {# Use Bootstrap margin class or your own styling #}
+    <label class="form-label">Select Your Learning Path:</label>
+    <div>
+        <input type="radio" id="fixed_roadmap" name="roadmap_type" value="fixed" checked required class="form-check-input">
+        <label for="fixed_roadmap" class="form-check-label">Fixed Roadmap (Get Course Recommendations)</label>
     </div>
+    <div>
+        <input type="radio" id="flexible_roadmap" name="roadmap_type" value="flexible" required class="form-check-input">
+        <label for="flexible_roadmap" class="form-check-label">Flexible Roadmap (Explore Content)</label>
+    </div>
+</div>
 
     <div class="mb-5">
       <p class="fw-bold mb-2">Interested Courses:</p>
@@ -178,7 +188,7 @@
     <div id="selected_courses" class="mb-3"></div>
 
     <button type="submit" class="btn btn-primary w-100">
-      Get Recommendation
+      Get Recommendations
     </button>
   </form>
 

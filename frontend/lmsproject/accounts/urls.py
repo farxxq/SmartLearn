@@ -57,6 +57,9 @@ urlpatterns = [
     path('course_detail/<int:course_id>/', views.course_detail, name='course_detail'),  # Course Detail
     path('mark_quiz_attended/<int:quiz_id>/', views.mark_quiz_attended, name='mark_quiz_attended'),  # Mark Quiz as Attended
     path('update_course_progress/<int:course_id>/', views.update_course_progress, name='update_course_progress'),
+
+    path('flexible-temp/', views.flexible_roadmap_placeholder, name='flexible_temp'), # Recommendations
+     path('personalized-courses/', views.personalized_courses_view, name='personalized_courses'), #personalized_courses
     
 
 ]

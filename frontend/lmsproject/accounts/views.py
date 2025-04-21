@@ -20,6 +20,112 @@ from django.contrib.auth.models import User
 from .models import Course, UserCourse, Reward, Quiz, Topic, Course, StudentProfile, UserProgress
 from django.db.models import Avg
 import math
+from django.conf import settings
+import google.generativeai as genai
+
+# Configure Gemini (consider doing this once globally if preferred)
+try:
+    if settings.GEMINI_API_KEY:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        model_gemini = genai.GenerativeModel("gemini-1.5-flash") # Or your preferred model
+    else:
+        model_gemini = None
+        print("Warning: GEMINI_API_KEY not found in settings.")
+except AttributeError:
+    model_gemini = None
+    print("Warning: GEMINI_API_KEY setting missing.")
+except Exception as e:
+    model_gemini = None
+    print(f"Error configuring Gemini: {e}")
+
+def generate_roadmap_prompt(course_name, user_profile=None, user_prefs=None, existing_topics=None): # Added user_prefs
+    prompt = f"""Generate content for a new online course titled "{course_name}".
+
+Provide the following information in sections clearly marked with triple hashes (###):
+
+### Course Description ###
+A concise, engaging one-paragraph description suitable for a course catalog.
+
+### Topic List ###
+A comma-separated list of 5-10 key topic names that form a logical learning path for this course, starting with fundamentals. Example: Topic 1, Topic 2, Another Topic Name
+
+### Detailed Roadmap ###
+A step-by-step learning roadmap expanding on the topics above. Structure as a numbered list. Each item should be a topic name followed by a brief one-sentence description.
+
+"""
+
+    # --- Add specific user preferences context if available ---
+    if user_prefs: # Check if the dictionary exists and is not empty
+        prompt += f"""Tailor the roadmap for a learner with the following profile:
+- Age: {user_prefs.get('age', 'N/A')}
+- Degree: {user_prefs.get('degree', 'N/A')}
+- GPA: {user_prefs.get('gpa', 'N/A')}
+- Learning Module Preference: {user_prefs.get('module_preference', 'N/A')}
+- Time Available Daily (hrs): {user_prefs.get('time_available_hrs', 'N/A')}
+
+Adjust the pace, depth, or examples in the roadmap based on this profile if possible.
+
+"""
+    elif user_profile and hasattr(user_profile, 'user'): # Fallback to basic profile if prefs not found
+        prompt += f"""Consider the learner:
+- Username: {user_profile.user.username}
+- Name: {user_profile.name if hasattr(user_profile, 'name') and user_profile.name else 'N/A'}
+
+"""
+    # --- End user context ---
+
+    if existing_topics:
+        topic_names = ", ".join([t.name for t in existing_topics])
+        prompt += f"The course already includes these topics (you can incorporate or expand on them): {topic_names}.\n\n"
+
+    prompt += "Ensure the output strictly follows the requested format with the ### markers and focuses on the course content."
+
+    return prompt
+
+def parse_ai_response(response_text):
+    """
+    Parses the AI response text based on predefined markers.
+    Returns a dictionary with 'description', 'topic_list', and 'roadmap_text'.
+    """
+    data = {
+        'description': None,
+        'topic_list': [],
+        'roadmap_text': None
+    }
+    if not response_text: # Handle empty input
+        return data
+
+    try:
+        # Use partition for robustness - finds first occurrence
+        _, marker1, after_desc_marker = response_text.partition('### Course Description ###')
+        if marker1:
+            desc_part, marker2, after_topics_marker = after_desc_marker.partition('### Topic List ###')
+            data['description'] = desc_part.strip()
+            if marker2:
+                topics_part, marker3, after_roadmap_marker = after_topics_marker.partition('### Detailed Roadmap ###')
+                topic_str = topics_part.strip()
+                # Split topics, strip whitespace, filter empty strings
+                data['topic_list'] = [topic.strip() for topic in topic_str.split(',') if topic.strip()]
+                if marker3:
+                    data['roadmap_text'] = after_roadmap_marker.strip()
+                # If roadmap marker not found, maybe topics was the last section
+                elif not data['roadmap_text'] and not marker3:
+                     data['roadmap_text'] = "Roadmap section not found in AI response."
+
+            # If topic list marker not found, maybe description was last
+            elif not marker2 and not data['topic_list']:
+                 data['roadmap_text'] = "Topic list and Roadmap sections not found in AI response."
+
+
+    except Exception as e:
+        print(f"Error parsing AI response: {e}")
+        # Fallback: Return the full text as roadmap if parsing fails badly
+        if not data['roadmap_text'] and response_text:
+             data['roadmap_text'] = f"Could not parse AI response. Raw:\n{response_text.strip()}"
+        elif not data['roadmap_text']:
+             data['roadmap_text'] = "Could not parse empty or invalid AI response."
+
+    return data
 
 
 # Display all students and their associated courses and progress
@@ -284,7 +390,7 @@ class UserCourseAdmin(admin.ModelAdmin):
 
 
 # Load model once globally to avoid reloading it for every request
-clf = joblib.load(r"C:/Users/Farooq/OneDrive/Documents/Final_year_project/SmartLearnProject/frontend/lmsproject/classification_model.pkl")
+clf = joblib.load(r"C:/Users/Farooq/OneDrive/Desktop/ProjectFolder/Source-Code/SmartLearnProject/frontend/lmsproject/classification_model.pkl")
 
 # Course Recommendation View
 def course_recommendation(request):
@@ -296,10 +402,23 @@ def course_recommendation(request):
             gpa = float(request.POST.get("gpa"))
             module = request.POST.get("module")
             time = float(request.POST.get("time"))
+            roadmap_type = request.POST.get("roadmap_type", "fixed")
 
             # Get the selected courses from the form (checkboxes)
             selected_courses = request.POST.getlist("course")
             no_option_selected = request.POST.get("no_option")
+
+            # --- Store preferences in session ---
+            user_preferences = {
+                'age': age,
+                'degree': degree,
+                'gpa': gpa,
+                'module_preference': module, # Store module preference
+                'time_available_hrs': time,
+            }
+            request.session['user_course_preferences'] = user_preferences
+            print(f"--- Stored preferences in session: {user_preferences} ---") # Debug print
+            # --- End store in session ---
 
             # Create DataFrame for the user input
             new_data = pd.DataFrame({
@@ -315,7 +434,12 @@ def course_recommendation(request):
             encoder = LabelEncoder()
             for col in categorical_columns:
                 if new_data[col].dtype == 'object':
-                    new_data[col] = encoder.fit_transform(new_data[col].astype(str))
+                     try:
+                         new_data[col] = encoder.fit_transform(new_data[col].astype(str))
+                     except ValueError as ve:
+                         # Handle unseen labels more gracefully
+                         messages.error(request, f"Invalid value provided for {col}. Please select from available options.")
+                         return render(request, 'accounts/courses.html', {'error': f"Invalid value for {col}"})
 
             # If "No Option" is selected, recommend all domains based on the model
             if no_option_selected:
@@ -330,14 +454,163 @@ def course_recommendation(request):
                 # If no courses are selected, prompt the user to select one
                 recommended_domains = ["No courses selected. Please choose one."]
 
-            # Redirect to the 'your_course' page with the recommended domains
-            # Pass recommended_domains as a query parameter
-            return redirect(f'{reverse("your_course")}?recommended_domains={",".join(recommended_domains)}')
+            if not recommended_domains:
+                 # This might happen if 'no_option' was selected but prediction failed/was empty
+                 messages.error(request, "Could not determine recommendations. Please check your inputs or select courses.")
+                 return render(request, 'accounts/courses.html')
+
+            # Now, perform the redirect based on roadmap_type
+            if roadmap_type == "flexible":
+                # --- CHANGE THIS PART ---
+                # Redirect to flexible roadmap page, PASSING the domains
+                print("--- DEBUG: Redirecting to flexible_temp WITH domains ---")
+                domains_param = ",".join(recommended_domains) # Join list into string
+                # Construct URL using reverse and add the query parameter
+                redirect_url = f"{reverse('flexible_temp')}?recommended_domains={domains_param}"
+                return redirect(redirect_url)
+                # --- END CHANGE ---
+
+            else: # Fixed roadmap (or default) - This part remains the same
+                print("--- DEBUG: Redirecting to your_course ---")
+                domains_param = ",".join(recommended_domains)
+                redirect_url = f'{reverse("your_course")}?recommended_domains={domains_param}'
+                return redirect(redirect_url)
 
         except Exception as e:
             return render(request, 'accounts/courses.html', {'error': str(e)})
 
     return render(request, 'accounts/courses.html')
+
+# flexible_roadmap
+def flexible_roadmap_placeholder(request):
+    # This view handles the redirect when roadmap_type is "flexible"
+    # Add logic here for what should happen on this page
+    # You might want to access query parameters if you pass recommended_domains
+    # domains = request.GET.get('recommended_domains', '')
+    # ... process domains ...
+    return render(request, 'accounts/flexible_roadmap_temp.html') # Example template
+
+#personalized_course
+def personalized_courses_view(request):
+    print(f"--- DEBUG: model_gemini object: {model_gemini} ---")
+    """
+    Handles selection, GETS OR CREATES the course using AI if needed,
+    enrolls user, and displays course details with AI roadmap.
+    """
+    course_to_display = None
+    selected_domain_name = None
+    is_enrolled = False
+    generated_roadmap_text = "Roadmap generation pending or not applicable." # Default
+    topics = [] # Default
+
+    if request.method == 'POST':
+        selected_domain_name = request.POST.get('selected_flexible_domain')
+
+        if not selected_domain_name:
+            messages.error(request, "No course selected.")
+            return redirect('course_recommendation')
+
+        try:
+            # --- Try to Get or Create the Course ---
+            # Provide defaults for fields needed if creating
+            # Note: Using selected_domain_name for 'topic' field, adjust if needed
+            course_defaults = {
+                'description': f"A course about {selected_domain_name}.", # Placeholder description
+                'topic': selected_domain_name # Default topic based on name
+            }
+            course_to_display, course_created = Course.objects.get_or_create(
+                name=selected_domain_name,
+                defaults=course_defaults
+            ) #
+
+            print(f"--- Course '{selected_domain_name}' - Existed: {not course_created} ---")
+
+            # --- Enroll User ---
+            user_course, enrolled_now = UserCourse.objects.get_or_create(
+                user=request.user,
+                course=course_to_display
+            )
+            is_enrolled = True
+            if enrolled_now:
+                 messages.success(request, f"Successfully enrolled in {course_to_display.name}!")
+            else:
+                 messages.info(request, f"You are already enrolled in {course_to_display.name}.")
+
+            # --- Generate AI content ONLY if course is NEWLY created ---
+            # --- OR always generate roadmap text for display (optional) ---
+            roadmap_needed = True # Let's always generate the roadmap text for display
+            ai_content_generated = False
+
+            if course_created or roadmap_needed: # Check if we need to call AI
+                  generated_roadmap_text = "Roadmap generation pending or not applicable."
+            if model_gemini:
+                # --- RETRIEVE PREFERENCES FROM SESSION ---
+                user_prefs = request.session.get('user_course_preferences', {}) # Get prefs, default to empty dict
+                print(f"--- Retrieved preferences from session: {user_prefs} ---") # Debug print
+                # --- END RETRIEVE ---
+
+                # Fetch user profile (Optional, basic info like name)
+                user_profile = None
+                try:
+                    user_profile = StudentProfile.objects.get(user=request.user)
+                except StudentProfile.DoesNotExist:
+                    pass # Okay if profile doesn't exist
+
+                existing_topics = Topic.objects.filter(course=course_to_display).order_by('id')
+
+                # --- Pass user_prefs to prompt function ---
+                prompt = generate_roadmap_prompt(
+                    course_name=course_to_display.name,
+                    user_profile=user_profile, # Pass basic profile if needed
+                    user_prefs=user_prefs,      # Pass detailed preferences
+                    existing_topics=existing_topics
+                )
+
+                try:
+                    # ... (Call Gemini API) ...
+                    print(f"--- Sending Prompt to Gemini for {course_to_display.name} (with FORM context) ---") # Debug msg
+                    response = model_gemini.generate_content(prompt)
+                    # ... (Process response, parse, update course if created, etc.) ...
+                    raw_ai_response = response.text if response and hasattr(response, 'text') else None
+                    if raw_ai_response:
+                        parsed_data = parse_ai_response(raw_ai_response)
+                        generated_roadmap_text = parsed_data.get('roadmap_text', "AI could not generate roadmap details.")
+                        if course_created:
+                            # ...(logic to update course description and create topics)...
+                            if parsed_data.get('description'):
+                                course_to_display.description = parsed_data['description']
+                                course_to_display.save()
+                            if parsed_data.get('topic_list'):
+                                for topic_name in parsed_data['topic_list']:
+                                    Topic.objects.create(name=topic_name, course=course_to_display)
+                    else:
+                         generated_roadmap_text = "AI response was empty."
+
+                except Exception as e:
+                    # ... (error handling for AI call) ...
+                     generated_roadmap_text = f"Error calling AI to generate roadmap: {str(e)}"
+                     print(f"!!! Gemini API Error: {e} !!!")
+
+            # --- Fetch Topics for Display ---
+            topics = Topic.objects.filter(course=course_to_display).order_by('id')
+
+        except Exception as e:
+            # ... (general error handling) ...
+            messages.error(request, f"An error occurred: {e}")
+            return redirect('course_recommendation')
+
+    # --- Prepare Context and Render ---
+    if course_to_display:
+        context = {
+            'course': course_to_display,
+            'topics': topics,
+            'is_enrolled': is_enrolled,
+            'selected_domain': selected_domain_name,
+            'generated_roadmap': generated_roadmap_text
+        }
+        return render(request, 'accounts/personalized_courses.html', context)
+    else:
+        return redirect('course_recommendation')
 
 # Landing Page View
 def landing_page(request):
@@ -358,8 +631,6 @@ def login_view(request):
 
                 if user:
                     login(request, user)
-                    # Add logic here to redirect admins vs students if needed
-                    # Example: Check user.studentprofile or user.is_staff
                     messages.success(request, f'Welcome back, {user.username}!')
                     # Redirect based on profile/role needs more specific logic
                     # based on your StudentProfile/UserProfile models
@@ -373,7 +644,6 @@ def login_view(request):
     else:
         form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})
-
 
 # Signup View for New Users
 def signup_view(request):
@@ -389,7 +659,6 @@ def signup_view(request):
     else:
         form = SignUpForm()
     return render(request, 'accounts/signup.html', {'form': form})
-
 
 # Student Dashboard (for logged-in students)
 @login_required
@@ -412,7 +681,6 @@ def student_dashboard(request):
     # Ensure template path is correct (inside 'accounts' folder)
     return render(request, 'accounts/student_dashboard.html', context)
 
-
 # Admin Dashboard (for logged-in admins)
 @login_required
 def admin_dashboard(request):
@@ -424,11 +692,8 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-
 def courses_view(request):
     return render(request, 'accounts/courses.html')
-
-
 
 # def your_course(request):
 #     # Get the recommended_domains query parameter from the URL
@@ -635,7 +900,6 @@ def beginner_quiz_view(request):
     else:
         return render(request, 'accounts/java_beginner_quiz.html')
 
-
 @login_required
 def intermediate_quiz_view(request):
     if request.method == 'POST':
@@ -666,7 +930,6 @@ def intermediate_quiz_view(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return render(request, 'accounts/java_intermediate_quiz.html')
-
 
 @login_required
 def advanced_quiz_view(request):
@@ -699,7 +962,6 @@ def advanced_quiz_view(request):
     else:
         return render(request, 'accounts/java_advanced_quiz.html')
 
-
 @login_required
 def python_beginner_quiz_view(request):
     if request.method == 'POST':
@@ -727,8 +989,6 @@ def python_beginner_quiz_view(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return render(request, 'accounts/python_beginner_quiz.html')
-
-
 
 @login_required
 def python_intermediate_quiz_view(request):
@@ -759,7 +1019,6 @@ def python_intermediate_quiz_view(request):
     else:
         return render(request, 'accounts/python_intermediate_quiz.html')
 
-
 @login_required
 def python_advanced_quiz_view(request):
     if request.method == 'POST':
@@ -788,8 +1047,6 @@ def python_advanced_quiz_view(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return render(request, 'accounts/python_advanced_quiz.html')
-
-
 
 @login_required
 def cloud_computing_beginner_quiz_view(request):
@@ -820,7 +1077,6 @@ def cloud_computing_beginner_quiz_view(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return render(request, 'accounts/cloud_computing_beginner_quiz.html')
-
 
 @login_required
 def cloud_computing_intermediate_quiz_view(request):
@@ -883,7 +1139,6 @@ def cloud_computing_advanced_quiz_view(request):
     else:
         return render(request, 'accounts/cloud_computing_advanced_quiz.html')
 
-
 @login_required
 def data_science_beginner_quiz_view(request):
     if request.method == 'POST':
@@ -921,7 +1176,6 @@ def data_science_beginner_quiz_view(request):
     else:
         return render(request, 'accounts/data_science_beginner_quiz.html')
 
-
 @login_required
 def data_science_intermediate_quiz_view(request):
     if request.method == 'POST':
@@ -952,8 +1206,6 @@ def data_science_intermediate_quiz_view(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return render(request, 'accounts/data_science_intermediate_quiz.html')
-
-    
 
 @login_required
 def data_science_advanced_quiz_view(request):
@@ -986,8 +1238,6 @@ def data_science_advanced_quiz_view(request):
     else:
         return render(request, 'accounts/data_science_advanced_quiz.html')
 
-
-
 @login_required
 def web_development_beginner_quiz_view(request):
     if request.method == 'POST':
@@ -1018,8 +1268,6 @@ def web_development_beginner_quiz_view(request):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return render(request, 'accounts/web_development_beginner_quiz.html')
-
-
 
 @login_required
 def web_development_intermediate_quiz_view(request):
@@ -1052,7 +1300,6 @@ def web_development_intermediate_quiz_view(request):
     else:
         return render(request, 'accounts/web_development_intermediate_quiz.html')
 
-
 @login_required
 def web_development_advanced_quiz_view(request):
     # Inside the advanced quiz view's POST handler...
@@ -1060,55 +1307,82 @@ def web_development_advanced_quiz_view(request):
         try:
             data = json.loads(request.body)
             score = data.get('score')
-            total_questions = 10 # Assuming 10 questions, adjust if dynamic
+            print(f"Received score: {score}") # Print received score
 
             if score is not None:
+                total_questions = 10 # Adjust if needed
                 percentage = (score / total_questions) * 100 if total_questions > 0 else 0
+                print(f"Calculated percentage: {percentage:.2f}%") # Print calculated percentage
 
-                # --- Add/Modify this block ---
                 if percentage >= 40:
-                    # Mark course as complete in the database
+                    print("--- Score >= 40%, attempting to mark complete ---")
                     try:
-                        # Get the specific course object (Adjust course name/lookup as needed)
-                        course_name = "Web Development" # Or get dynamically if possible
+                        course_name = "Web Development" # <<< DOUBLE CHECK THIS NAME MATCHES DB EXACTLY for this view
+                        print(f"Attempting to find course: '{course_name}'")
                         course = Course.objects.get(name=course_name) 
+                        print(f"Found course: {course}")
+                        
+                        print(f"Attempting to get/create UserCourse for user {request.user.id} and course {course.id}")
                         user_course, created = UserCourse.objects.get_or_create(user=request.user, course=course)
-                        user_course.progress = 100 # Mark as complete by setting progress
-                        user_course.save()
+                        print(f"Got UserCourse: {user_course}, Created new: {created}")
 
-                        # Prepare JSON response indicating completion
-                        return JsonResponse({
-                            'message': f'Congratulations! You have completed the {course_name} course!',
-                            'status': 'success',
-                            'course_completed_id': course.id # Send completed course ID back
-                            # No redirect_url needed here, JS will handle it
-                        })
+                        print(f"Setting progress to 100 (current is {user_course.progress})")
+                        user_course.progress = 100 
+                        
+                        print("Attempting to save UserCourse...")
+                        user_course.save() # <<< ENSURE THIS LINE EXISTS
+                        print("--- UserCourse saved successfully! ---") 
+                        
+                        return JsonResponse({ ... }) # Your existing JSON response
+
                     except Course.DoesNotExist:
-                        return JsonResponse({'error': 'Course not found for completion tracking.'}, status=404)
-                    except UserCourse.DoesNotExist:
-                        return JsonResponse({'error': 'User enrollment not found for completion tracking.'}, status=404)
+                         # --- ADD PRINT ---
+                         print(f"!!! ERROR: Course '{course_name}' not found in database! !!!")
+                         return JsonResponse({'error': 'Course not found for completion tracking.'}, status=404)
+                    except UserCourse.DoesNotExist: 
+                         # Should not happen with get_or_create, but good to have
+                         print(f"!!! ERROR: UserCourse not found and couldn't be created? !!!")
+                         return JsonResponse({'error': 'User enrollment not found for completion tracking.'}, status=404)
                     except Exception as e:
-                        # Log the exception e
-                        return JsonResponse({'error': 'Error updating course completion.'}, status=500)
+                         # --- ADD PRINT ---
+                         print(f"!!! ERROR during completion update: {type(e).__name__} - {e} !!!")
+                         # Log the full exception 'e' here if needed
+                         return JsonResponse({'error': 'Error updating course completion.'}, status=500)
+                        
+                else: # Score < 40%
+                    print("--- Score < 40%, processing as retry ---")
+                    # ... (your existing logic for handling low score quiz attempt logging) ...
+                    return JsonResponse({ ... }) # Your existing JSON response for retry
 
-                else: # Score < 40% (Retry logic handled by frontend JS)
-                    quiz = Quiz.objects.create(
-                    name=request.user.username, # Or however you track quiz attempts
-                    level="Advanced",
-                    mark=score
-                    # Link to course if needed: course=course_object 
-                    )
-                    quiz.attendees.add(request.user)
-                    # Just send success, JS handles retry navigation
-                    return JsonResponse({
-                        'message': 'Keep practicing! Try this level again.',
-                        'status': 'success', 
-                    })
-            # --- End Add/Modify block ---
-            else:
+            else: # Score is None
+                print("!!! ERROR: Score not found in POST data! !!!")
                 return JsonResponse({'error': 'No score provided'}, status=400)
-        except Exception as e:
-            # Log the exception e
-            return JsonResponse({'error': str(e)}, status=500)
+                
+        except Exception as e: # Catch broader errors loading JSON etc.
+             # --- ADD PRINT ---
+             print(f"!!! ERROR processing POST request: {type(e).__name__} - {e} !!!")
+             # Log the exception 'e'
+             return JsonResponse({'error': str(e)}, status=500)
+             
     else: # GET Request
-        return render(request, 'accounts/web_development_advanced_quiz.html') # Or the correct template path
+        print("--- Handling GET request, rendering template ---")
+        return render(request, 'accounts/web_development_advanced_quiz.html') # Adjust template path
+    
+@login_required
+def flexible_roadmap_placeholder(request):
+    domains_param = request.GET.get('recommended_domains', '') # Default to empty string if not found
+
+    # Split the string back into a list, handling empty strings/parameter
+    if domains_param:
+        recommended_domains_list = [domain.strip() for domain in domains_param.split(',') if domain.strip()]
+    else:
+        recommended_domains_list = []
+
+    # Pass the list to the template context
+    context = {
+        'domains': recommended_domains_list
+    }
+    # --- END ADDED LOGIC ---
+
+    # Render the template, passing the context
+    return render(request, 'accounts/flexible_roadmap_temp.html', context)

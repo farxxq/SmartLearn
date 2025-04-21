@@ -98,7 +98,6 @@
         <div class="level-section">
           <p class="enrolled-message">You are enrolled in this course!</p>
           <p>Choose the level you want to begin with:</p> {# --- Dynamically link to quizzes (Needs Quiz URLs to be generic too ideally) --- #}       
-          <h2 style="color:red; background-color:yellow;">DEBUG: Course Name = '{{ course.name }}'</h2>
           {% if course.name == "Java" %}
             <button
               class="level-btn level-link-button"
